@@ -180,12 +180,12 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
 </section>
 
 <section id="budget">
- <div class="sectionhead"><h2>💰 8 人旅費分帳</h2><span class="note">新增支出會自動平均</span></div>
+ <div class="sectionhead"><h2>💰 6 位大人旅費分帳</h2><span class="note">新增支出會自動平均</span></div>
  <div class="card">
   <div class="statgrid">
    <div class="stat"><small>目前總支出</small><b id="total">NT$0</b></div>
    <div class="stat"><small>每人平均</small><b id="perPerson">NT$0</b></div>
-   <div class="stat"><small>同行人數</small><b>8 人</b></div>
+   <div class="stat"><small>分攤大人數</small><b>6 位</b></div>
   </div>
   <div class="expenseform">
    <input id="expenseName" type="text" placeholder="支出項目（例：包棟住宿）">
@@ -193,7 +193,7 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
    <button class="btn" id="addExpense">＋新增</button>
   </div>
   <div id="expenseList"><p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p></div>
-  <div class="tip">分帳目前採「總額 ÷ 8 人」平均估算。若小孩、不同家庭或個別付款方式需要不同分攤，可再調整規則。</div>
+  <div class="tip">分帳目前採「總額 ÷ 6 位大人」平均估算；同行共 8 人，其中 2 位孩子不列入平均分攤。</div>
  </div>
 </section>
 
@@ -287,23 +287,37 @@ function defaultShared(){
  originalDays.forEach((d,i)=>{days[String(i)]={...d,stops:d.stops.map(s=>({time:s[0],place:s[1],note:s[2],color:s[3]||'yellow',tag:s[4]||''}))}});
  return {days,todo:[],adult:[],baby:[],expenses:[]};
 }
+// 將共享資料序列化成單一字串儲存，徹底避免 Firestore 巢狀陣列限制。
+async function persistShared(patch){
+ const next={...(shared||defaultShared()),...patch};
+ await setDoc(doc(db,'shared','trip'),{payload:JSON.stringify(next)});
+}
+function readShared(snapshot){
+ if(!snapshot.exists())return defaultShared();
+ const data=snapshot.data();
+ if(typeof data.payload==='string'){
+  try{return JSON.parse(data.payload)}catch(e){console.error('共享資料解析失敗',e);return defaultShared()}
+ }
+ // 相容舊版資料格式
+ return data;
+}
 function drawChecks(id,items,key,progressId){
  const el=document.getElementById(id);el.innerHTML='';
- items.forEach((t,i)=>{const checked=!!(shared?.[key]?.[i]);const lab=document.createElement('label');lab.className='checkrow'+(checked?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=checked;cb.disabled=!isMember;cb.addEventListener('change',async()=>{const next=[...(shared[key]||[])];next[i]=cb.checked;await updateDoc(doc(db,'shared','trip'),{[key]:next})});const span=document.createElement('span');span.textContent=t;lab.append(cb,span);el.append(lab)});
+ items.forEach((t,i)=>{const checked=!!(shared?.[key]?.[i]);const lab=document.createElement('label');lab.className='checkrow'+(checked?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=checked;cb.disabled=!isMember;cb.addEventListener('change',async()=>{const next=[...(shared[key]||[])];next[i]=cb.checked;await persistShared({[key]:next})});const span=document.createElement('span');span.textContent=t;lab.append(cb,span);el.append(lab)});
  const n=(shared?.[key]||[]).filter(Boolean).length;document.getElementById(progressId).style.width=(items.length?Math.round(n/items.length*100):0)+'%';
 }
 function drawAllChecks(){drawChecks('todoList',todoItems,'todo','todoProgress');drawChecks('adultList',adultItems,'adult','adultProgress');drawChecks('babyList',babyItems,'baby','babyProgress');const n=(shared?.todo||[]).filter(Boolean).length;document.getElementById('todoCount').textContent=`${n} / ${todoItems.length} 完成`}
 function money(n){return 'NT$'+Math.round(n).toLocaleString('zh-TW')}
-function drawExpenses(){const expenses=shared?.expenses||[];const total=expenses.reduce((a,x)=>a+Number(x.amount||0),0);document.getElementById('total').textContent=money(total);document.getElementById('perPerson').textContent=money(total/8);const list=document.getElementById('expenseList');list.innerHTML='';if(!expenses.length){list.innerHTML='<p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p>';return}expenses.forEach((x,i)=>{const row=document.createElement('div');row.className='expense';const left=document.createElement('span');left.textContent=x.name;const right=document.createElement('b');right.textContent=money(x.amount);const del=document.createElement('button');del.textContent='✕';del.setAttribute('aria-label','刪除支出');del.disabled=!isMember;del.onclick=async()=>{const next=expenses.filter((_,j)=>j!==i);await updateDoc(doc(db,'shared','trip'),{expenses:next})};row.append(left,right,del);list.append(row)})}
+function drawExpenses(){const expenses=shared?.expenses||[];const total=expenses.reduce((a,x)=>a+Number(x.amount||0),0);document.getElementById('total').textContent=money(total);document.getElementById('perPerson').textContent=money(total/6);const list=document.getElementById('expenseList');list.innerHTML='';if(!expenses.length){list.innerHTML='<p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p>';return}expenses.forEach((x,i)=>{const row=document.createElement('div');row.className='expense';const left=document.createElement('span');left.textContent=x.name;const right=document.createElement('b');right.textContent=money(x.amount);const del=document.createElement('button');del.textContent='✕';del.setAttribute('aria-label','刪除支出');del.disabled=!isMember;del.onclick=async()=>{const next=expenses.filter((_,j)=>j!==i);await persistShared({expenses:next})};row.append(left,right,del);list.append(row)})}
 function renderAll(){renderDay(activeDay);drawAllChecks();drawExpenses();document.getElementById('addExpense').disabled=!isMember;document.getElementById('expenseName').disabled=!isMember;document.getElementById('expenseAmount').disabled=!isMember;}
 
 document.getElementById('saveDay').addEventListener('click',async()=>{
  if(!isMember)return;const lines=document.getElementById('dayText').value.split(/\n/).map(x=>x.trim()).filter(Boolean);const stops=[];
  for(const line of lines){const parts=line.split('｜');if(parts.length<3){alert('每一行請用「時間｜地點｜備註」格式');return}stops.push({time:parts[0].trim(),place:parts[1].trim(),note:parts.slice(2).join('｜').trim(),color:'yellow',tag:''})}
  if(!stops.length){alert('至少保留一個行程項目');return}
- const days={};currentDays().forEach((d,i)=>{days[String(i)]=i===activeDay?{...d,stops}:d});await updateDoc(doc(db,'shared','trip'),{days});alert('行程已同步給旅伴！');
+ const days={};currentDays().forEach((d,i)=>{days[String(i)]=i===activeDay?{...d,stops}:d});await persistShared({days});alert('行程已同步給旅伴！');
 });
-document.getElementById('addExpense').addEventListener('click',async()=>{if(!isMember)return;const name=document.getElementById('expenseName').value.trim();const amount=Number(document.getElementById('expenseAmount').value);if(!name||!Number.isFinite(amount)||amount<=0){alert('請填寫支出項目與正確金額');return}const expenses=[...(shared?.expenses||[]),{name,amount}];await updateDoc(doc(db,'shared','trip'),{expenses});document.getElementById('expenseName').value='';document.getElementById('expenseAmount').value='';});
+document.getElementById('addExpense').addEventListener('click',async()=>{if(!isMember)return;const name=document.getElementById('expenseName').value.trim();const amount=Number(document.getElementById('expenseAmount').value);if(!name||!Number.isFinite(amount)||amount<=0){alert('請填寫支出項目與正確金額');return}const expenses=[...(shared?.expenses||[]),{name,amount}];await persistShared({expenses});document.getElementById('expenseName').value='';document.getElementById('expenseAmount').value='';});
 loginBtn.addEventListener('click',async()=>{try{await signInWithPopup(auth,provider)}catch(e){alert('登入失敗：'+(e.message||e))}});
 logoutBtn.addEventListener('click',()=>signOut(auth));
 onAuthStateChanged(auth,async(user)=>{
@@ -319,8 +333,8 @@ onAuthStateChanged(auth,async(user)=>{
    renderAll();return;
   }
   isMember=true;authStatus.textContent=`已登入並取得共同編輯權限：${user.email||''}`;
-  const ref=doc(db,'shared','trip');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,defaultShared());
-  unsubscribe=onSnapshot(ref,(ds)=>{shared=ds.exists()?ds.data():defaultShared();renderAll()},(err)=>{authStatus.textContent='資料同步失敗：'+err.message});
+  const ref=doc(db,'shared','trip');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,{payload:JSON.stringify(defaultShared())});
+  unsubscribe=onSnapshot(ref,(ds)=>{shared=readShared(ds);renderAll()},(err)=>{authStatus.textContent='資料同步失敗：'+err.message});
  }catch(e){authStatus.textContent='權限確認失敗：'+e.message}
  renderAll();
 });

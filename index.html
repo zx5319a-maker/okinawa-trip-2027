@@ -14,7 +14,7 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'Huninn',system-ui,sans-serif;line-height:1.55}
-button,input,select{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:inherit}
 .wrap{width:min(100% - 28px,900px);margin:auto}
@@ -132,6 +132,18 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
  <p class="smallprint" style="margin:12px 4px 0">小提醒：目前行程為可調整的初稿；住宿、航班編號與租車資料確認後再補上。</p>
 </header>
 
+<section id="account">
+ <div class="sectionhead"><h2>🔐 旅伴共同編輯</h2><span class="note">Google 帳號登入</span></div>
+ <div class="card">
+  <p id="authStatus">登入後即可查看共同旅遊資料。</p>
+  <div class="row" style="flex-wrap:wrap">
+   <button class="btn" id="loginBtn">使用 Google 登入</button>
+   <button class="btn secondary" id="logoutBtn" hidden>登出</button>
+  </div>
+  <div id="memberHelp" class="tip" hidden></div>
+  <p class="smallprint">只有經管理者加入名單的旅伴能讀取及編輯；請使用已授權的 Google 帳號。</p>
+ </div>
+</section>
 <section id="flight">
  <div class="sectionhead"><h2>✈ 航班小卡</h2><span class="note">時間為目前規劃</span></div>
  <div class="flightgrid">
@@ -147,6 +159,12 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
   <button class="tab active" data-day="0">D1 · 6/7</button><button class="tab" data-day="1">D2 · 6/8</button><button class="tab" data-day="2">D3 · 6/9</button><button class="tab" data-day="3">D4 · 6/10</button>
  </div>
  <div class="card" id="dayPanel" aria-live="polite"></div>
+ <div class="card" id="dayEditor" hidden>
+  <h3 style="margin-top:0">✏️ 編輯這一天的行程</h3>
+  <p class="smallprint">每一行一個行程，格式：時間｜地點｜備註。修改後按「同步行程」。</p>
+  <textarea id="dayText" rows="8" style="width:100%;border:2px solid var(--ink);border-radius:12px;padding:10px;font:inherit;background:#fff"></textarea>
+  <button class="btn" id="saveDay" style="margin-top:8px">同步行程</button>
+ </div>
 </section>
 
 <section id="map">
@@ -205,63 +223,98 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
  </div>
 </section>
 </main>
-<footer>沖繩小旅行 2027 · 帶著好心情出發 🌺<br><span>清單與旅費會保存在目前裝置的瀏覽器中。</span></footer>
+<footer>沖繩小旅行 2027 · 帶著好心情出發 🌺<br><span>行程、旅費與清單會同步到旅伴共用資料庫。</span></footer>
 
-<script>
-const tripDays = [
- {date:"6 月 7 日・星期一",title:"抵達沖繩，慢慢開啟假期",tag:"抵達日",stops:[
-  ["07:00","台灣出發","搭機前往沖繩。航班與機場資訊待補。","pink"],
-  ["上午","抵達那霸・入境領行李","預留入境、領行李與集合時間。","blue"],
-  ["中午","租車、午餐、超市採買","8 人同行請先確認車輛與行李空間；採買飲水、早餐及孩子用品。","green"],
-  ["下午","首里城公園（彈性安排）","視抵達時間與大家精神狀況決定，不必硬塞景點。","yellow"],
-  ["傍晚","入住包棟・晚餐休息","先讓孩子熟悉環境，整理隔天要帶的物品。","pink"]
- ],tip:"第一天不要排太滿。若航班延誤或租車手續較久，首里城可直接取消。"},
- {date:"6 月 8 日・星期二",title:"北部海洋日：鯨鯊與古宇利島",tag:"北部一日遊",stops:[
-  ["08:00","民宿早餐、出發","建議早點出發，車程依住宿地點而定。","green"],
-  ["上午","美麗海水族館","必去！建議預留約 2～3 小時，含大型水槽、展區與休息。","blue","必去"],
-  ["中午","本部町午餐","找適合多人入座的餐廳，先確認是否接受 8 人訂位。","yellow"],
-  ["下午","古宇利島・古宇利大橋","看海、拍照、吃點心；依天氣及孩子狀態彈性停留。","blue"],
-  ["傍晚","返回住宿・晚餐","北部回程較長，預留休息與塞車時間。","pink"]
- ],tip:"美麗海水族館與古宇利島是同一個北部方向，適合排同一天。若下雨，可延長水族館時間。"},
- {date:"6 月 9 日・星期三",title:"中部慢遊：美國村與海邊",tag:"中部一日遊",stops:[
-  ["上午","睡飽、民宿早餐","可以安排慢一點，讓忻翰午睡作息比較穩定。","green"],
-  ["中午","美國村・午餐","逛街、吃飯、拍照，適合多人分組自由活動。","yellow"],
-  ["下午","北谷海邊散步","看海、喝飲料，遇雨可改逛室內商場。","blue"],
-  ["傍晚","晚餐・回民宿","可安排一頓大家一起吃的沖繩料理。","pink"]
- ],tip:"這天保留彈性，不必塞滿景點。若住宿就在中北部，可依實際位置調整順序。"},
- {date:"6 月 10 日・星期四",title:"最後採買，帶著回憶回家",tag:"回程日",stops:[
-  ["上午","早餐、整理行李、退房","檢查護照、手機、充電器與孩子用品。","green"],
-  ["中午","瀨長島 Umikaji Terrace（備選）","靠近那霸機場，適合吃午餐、看海；注意天氣與停車。","blue"],
-  ["下午","國際通／機場周邊採買","依還車時間調整，不建議安排太遠的景點。","yellow"],
-  ["約 16:00","還車、前往機場","請依租車公司規定與航班報到時間提早還車。","pink"],
-  ["19:00","沖繩起飛・返回台灣","旅程結束！","blue"]
- ],tip:"回程 19:00 不代表可以玩到最後一刻。還車、接駁、托運與安檢都要留緩衝。"}
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA87HXaV1lwTsJltNa5YYGXTv3oE7GSmTk",
+  authDomain: "okinawa-trip-2027-19994.firebaseapp.com",
+  projectId: "okinawa-trip-2027-19994",
+  storageBucket: "okinawa-trip-2027-19994.firebasestorage.app",
+  messagingSenderId: "604141948923",
+  appId: "1:604141948923:web:69a76856069cca1541455e"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" });
+
+const originalDays = [
+ {date:"6 月 7 日・星期一",title:"抵達沖繩，慢慢開啟假期",tag:"抵達日",stops:[["07:00","台灣出發","搭機前往沖繩。航班與機場資訊待補。","pink"],["上午","抵達那霸・入境領行李","預留入境、領行李與集合時間。","blue"],["中午","租車、午餐、超市採買","8 人同行請先確認車輛與行李空間；採買飲水、早餐及孩子用品。","green"],["下午","首里城公園（彈性安排）","視抵達時間與大家精神狀況決定，不必硬塞景點。","yellow"],["傍晚","入住包棟・晚餐休息","先讓孩子熟悉環境，整理隔天要帶的物品。","pink"]],tip:"第一天不要排太滿。若航班延誤或租車手續較久，首里城可直接取消。"},
+ {date:"6 月 8 日・星期二",title:"北部海洋日：鯨鯊與古宇利島",tag:"北部一日遊",stops:[["08:00","民宿早餐、出發","建議早點出發，車程依住宿地點而定。","green"],["上午","美麗海水族館","必去！建議預留約 2～3 小時，含大型水槽、展區與休息。","blue","必去"],["中午","本部町午餐","找適合多人入座的餐廳，先確認是否接受 8 人訂位。","yellow"],["下午","古宇利島・古宇利大橋","看海、拍照、吃點心；依天氣及孩子狀態彈性停留。","blue"],["傍晚","返回住宿・晚餐","北部回程較長，預留休息與塞車時間。","pink"]],tip:"美麗海水族館與古宇利島是同一個北部方向，適合排同一天。若下雨，可延長水族館時間。"},
+ {date:"6 月 9 日・星期三",title:"中部慢遊：美國村與海邊",tag:"中部一日遊",stops:[["上午","睡飽、民宿早餐","可以安排慢一點，讓忻翰午睡作息比較穩定。","green"],["中午","美國村・午餐","逛街、吃飯、拍照，適合多人分組自由活動。","yellow"],["下午","北谷海邊散步","看海、喝飲料，遇雨可改逛室內商場。","blue"],["傍晚","晚餐・回民宿","可安排一頓大家一起吃的沖繩料理。","pink"]],tip:"這天保留彈性，不必塞滿景點。若住宿就在中北部，可依實際位置調整順序。"},
+ {date:"6 月 10 日・星期四",title:"最後採買，帶著回憶回家",tag:"回程日",stops:[["上午","早餐、整理行李、退房","檢查護照、手機、充電器與孩子用品。","green"],["中午","瀨長島 Umikaji Terrace（備選）","靠近那霸機場，適合吃午餐、看海；注意天氣與停車。","blue"],["下午","國際通／機場周邊採買","依還車時間調整，不建議安排太遠的景點。","yellow"],["約 16:00","還車、前往機場","請依租車公司規定與航班報到時間提早還車。","pink"],["19:00","沖繩起飛・返回台灣","旅程結束！","blue"]],tip:"回程 19:00 不代表可以玩到最後一刻。還車、接駁、托運與安檢都要留緩衝。"}
 ];
-function mapsUrl(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+" Okinawa Japan")}
-function renderDay(i){
- const d=tripDays[i];document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",+b.dataset.day===i));
- document.getElementById("dayPanel").innerHTML=`<div class="daytitle"><strong>${d.date}</strong><span class="pill yellow">${d.tag}</span></div><h3 style="margin:0 0 14px">${d.title}</h3><div class="timeline">${d.stops.map(s=>`<div class="stop"><time>${s[0]}</time><h3>${s[1]} ${s[4]?`<span class="pill must">${s[4]}</span>`:""}</h3><p>${s[2]}</p><span class="pill ${s[3]}">${s[1].includes("租車")?"交通／移動":s[1].includes("出發")?"航班": "行程"}</span> <a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(s[1])}">開啟地圖 ↗</a></div>`).join("")}</div><div class="tip">💡 ${d.tip}</div>`;
-}
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>renderDay(+b.dataset.day)));
-renderDay(0);
-const dep=new Date("2027-06-07T00:00:00");const today=new Date();today.setHours(0,0,0,0);document.getElementById("days").textContent=Math.max(0,Math.ceil((dep-today)/86400000));
-const KEY="okinawaTrip2027_v1";
-let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
-function persist(){localStorage.setItem(KEY,JSON.stringify(saved))}
 const todoItems=["確認 8 人護照效期與姓名拼音","確認機票、行李額度與座位","訂好 3 間以上臥室的包棟住宿","確認租車車型、駕駛與保險","確認兒童安全座椅／增高座椅需求","預約熱門餐廳或確認 8 人可入座","下載離線地圖、確認網路方案","準備旅平險與海外醫療保障","確認忻翰奶粉、尿布與備用用品"];
 const adultItems=["護照、機票與訂房資料","錢包、日圓現金、信用卡","手機、充電器、行動電源","轉接頭／充電線","換洗衣物、內衣褲、襪子","薄外套、雨具、防曬用品","舒適鞋、拖鞋","個人藥品、常備用品","盥洗用品、保養品","泳衣／海邊用品（視需要）"];
 const babyItems=["配方奶、奶粉分裝盒","奶瓶、奶嘴、奶瓶刷","尿布、濕紙巾、屁屁膏","奶瓶清潔用品／消毒用品","副食品、零食、寶寶餐具","水杯、圍兜、紗布巾","換洗衣物（多備 1～2 套）","薄外套、帽子、防曬用品","推車、背巾","安撫玩具、睡眠用品","常用藥品、體溫計、退熱用品","兒童安全座椅需求確認"];
-function drawChecks(id,items,key,progressId){
- const el=document.getElementById(id);el.innerHTML="";
- items.forEach((t,i)=>{const checked=!!(saved[key]&&saved[key][i]);const lab=document.createElement("label");lab.className="checkrow"+(checked?" done":"");const cb=document.createElement("input");cb.type="checkbox";cb.checked=checked;cb.addEventListener("change",()=>{saved[key]=saved[key]||[];saved[key][i]=cb.checked;persist();drawAllChecks()});const span=document.createElement("span");span.textContent=t;lab.append(cb,span);el.append(lab)});
- const n=(saved[key]||[]).filter(Boolean).length;const p=Math.round(n/items.length*100);document.getElementById(progressId).style.width=p+"%";
+let shared = null;
+let activeDay = 0;
+let unsubscribe = null;
+let isMember = false;
+const authStatus=document.getElementById('authStatus');
+const memberHelp=document.getElementById('memberHelp');
+const loginBtn=document.getElementById('loginBtn');
+const logoutBtn=document.getElementById('logoutBtn');
+const dayEditor=document.getElementById('dayEditor');
+
+function mapsUrl(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+" Okinawa Japan")}
+function safeText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function currentDays(){return shared?.days?.length ? shared.days : originalDays}
+function renderDay(i){
+ activeDay=i; const d=currentDays()[i]||originalDays[i];
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',+b.dataset.day===i));
+ document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>${safeText(d.date)}</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${(d.stops||[]).map(s=>`<div class="stop"><time>${safeText(s[0])}</time><h3>${safeText(s[1])} ${s[4]?`<span class="pill must">${safeText(s[4])}</span>`:''}</h3><p>${safeText(s[2])}</p><span class="pill ${safeText(s[3]||'yellow')}">行程</span> <a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(s[1])}">開啟地圖 ↗</a></div>`).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
+ const canEdit=isMember;
+ dayEditor.hidden=!canEdit;
+ if(canEdit){document.getElementById('dayText').value=(d.stops||[]).map(x=>`${x[0]}｜${x[1]}｜${x[2]}`).join('\n')}
 }
-function drawAllChecks(){drawChecks("todoList",todoItems,"todo","todoProgress");drawChecks("adultList",adultItems,"adult","adultProgress");drawChecks("babyList",babyItems,"baby","babyProgress");const n=(saved.todo||[]).filter(Boolean).length;document.getElementById("todoCount").textContent=`${n} / ${todoItems.length} 完成`}
-drawAllChecks();
-let expenses=saved.expenses||[];
-function money(n){return "NT$"+Math.round(n).toLocaleString("zh-TW")}
-function drawExpenses(){const total=expenses.reduce((a,x)=>a+x.amount,0);document.getElementById("total").textContent=money(total);document.getElementById("perPerson").textContent=money(total/8);const list=document.getElementById("expenseList");if(!expenses.length){list.innerHTML='<p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p>';return}list.innerHTML="";expenses.forEach((x,i)=>{const row=document.createElement("div");row.className="expense";const left=document.createElement("span");left.textContent=x.name;const right=document.createElement("b");right.textContent=money(x.amount);const del=document.createElement("button");del.setAttribute("aria-label","刪除支出");del.textContent="✕";del.onclick=()=>{expenses.splice(i,1);saved.expenses=expenses;persist();drawExpenses()};row.append(left,right,del);list.append(row)})}
-document.getElementById("addExpense").addEventListener("click",()=>{const name=document.getElementById("expenseName").value.trim();const amount=Number(document.getElementById("expenseAmount").value);if(!name||!Number.isFinite(amount)||amount<=0){alert("請填寫支出項目與正確金額");return}expenses.push({name,amount});saved.expenses=expenses;persist();document.getElementById("expenseName").value="";document.getElementById("expenseAmount").value="";drawExpenses()});
-drawExpenses();
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>renderDay(+b.dataset.day)));
+const dep=new Date('2027-06-07T00:00:00');const today=new Date();today.setHours(0,0,0,0);document.getElementById('days').textContent=Math.max(0,Math.ceil((dep-today)/86400000));
+
+function defaultShared(){return {days:originalDays,todo:[],adult:[],baby:[],expenses:[]}}
+function drawChecks(id,items,key,progressId){
+ const el=document.getElementById(id);el.innerHTML='';
+ items.forEach((t,i)=>{const checked=!!(shared?.[key]?.[i]);const lab=document.createElement('label');lab.className='checkrow'+(checked?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=checked;cb.disabled=!isMember;cb.addEventListener('change',async()=>{const next=[...(shared[key]||[])];next[i]=cb.checked;await updateDoc(doc(db,'shared','trip'),{[key]:next})});const span=document.createElement('span');span.textContent=t;lab.append(cb,span);el.append(lab)});
+ const n=(shared?.[key]||[]).filter(Boolean).length;document.getElementById(progressId).style.width=(items.length?Math.round(n/items.length*100):0)+'%';
+}
+function drawAllChecks(){drawChecks('todoList',todoItems,'todo','todoProgress');drawChecks('adultList',adultItems,'adult','adultProgress');drawChecks('babyList',babyItems,'baby','babyProgress');const n=(shared?.todo||[]).filter(Boolean).length;document.getElementById('todoCount').textContent=`${n} / ${todoItems.length} 完成`}
+function money(n){return 'NT$'+Math.round(n).toLocaleString('zh-TW')}
+function drawExpenses(){const expenses=shared?.expenses||[];const total=expenses.reduce((a,x)=>a+Number(x.amount||0),0);document.getElementById('total').textContent=money(total);document.getElementById('perPerson').textContent=money(total/8);const list=document.getElementById('expenseList');list.innerHTML='';if(!expenses.length){list.innerHTML='<p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p>';return}expenses.forEach((x,i)=>{const row=document.createElement('div');row.className='expense';const left=document.createElement('span');left.textContent=x.name;const right=document.createElement('b');right.textContent=money(x.amount);const del=document.createElement('button');del.textContent='✕';del.setAttribute('aria-label','刪除支出');del.disabled=!isMember;del.onclick=async()=>{const next=expenses.filter((_,j)=>j!==i);await updateDoc(doc(db,'shared','trip'),{expenses:next})};row.append(left,right,del);list.append(row)})}
+function renderAll(){renderDay(activeDay);drawAllChecks();drawExpenses();document.getElementById('addExpense').disabled=!isMember;document.getElementById('expenseName').disabled=!isMember;document.getElementById('expenseAmount').disabled=!isMember;}
+
+document.getElementById('saveDay').addEventListener('click',async()=>{
+ if(!isMember)return;const lines=document.getElementById('dayText').value.split(/\n/).map(x=>x.trim()).filter(Boolean);const stops=[];
+ for(const line of lines){const parts=line.split('｜');if(parts.length<3){alert('每一行請用「時間｜地點｜備註」格式');return}stops.push([parts[0].trim(),parts[1].trim(),parts.slice(2).join('｜').trim(),'yellow'])}
+ if(!stops.length){alert('至少保留一個行程項目');return}
+ const days=currentDays().map((d,i)=>i===activeDay?{...d,stops}:d);await updateDoc(doc(db,'shared','trip'),{days});alert('行程已同步給旅伴！');
+});
+document.getElementById('addExpense').addEventListener('click',async()=>{if(!isMember)return;const name=document.getElementById('expenseName').value.trim();const amount=Number(document.getElementById('expenseAmount').value);if(!name||!Number.isFinite(amount)||amount<=0){alert('請填寫支出項目與正確金額');return}const expenses=[...(shared?.expenses||[]),{name,amount}];await updateDoc(doc(db,'shared','trip'),{expenses});document.getElementById('expenseName').value='';document.getElementById('expenseAmount').value='';});
+loginBtn.addEventListener('click',async()=>{try{await signInWithPopup(auth,provider)}catch(e){alert('登入失敗：'+(e.message||e))}});
+logoutBtn.addEventListener('click',()=>signOut(auth));
+onAuthStateChanged(auth,async(user)=>{
+ if(unsubscribe){unsubscribe();unsubscribe=null}shared=null;isMember=false;memberHelp.hidden=true;logoutBtn.hidden=!user;loginBtn.hidden=!!user;
+ if(!user){authStatus.textContent='登入後即可查看共同旅遊資料。';renderAll();return}
+ authStatus.textContent=`已登入：${user.email||'Google 帳號'}，正在確認旅伴權限…`;
+ try{
+  const memberSnap=await getDoc(doc(db,'members',user.uid));
+  if(!memberSnap.exists()){
+   authStatus.textContent='這個 Google 帳號尚未加入旅伴名單。';
+   memberHelp.hidden=false;memberHelp.innerHTML=`請把以下使用者 ID 傳給網站管理者，加入授權後重新整理即可：<br><code style="word-break:break-all">${safeText(user.uid)}</code><br><button class="btn secondary" id="copyUid" type="button">複製使用者 ID</button>`;
+   document.getElementById('copyUid').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(user.uid);alert('已複製使用者 ID')}catch(e){alert('請長按並複製上方 ID')}});
+   renderAll();return;
+  }
+  isMember=true;authStatus.textContent=`已登入並取得共同編輯權限：${user.email||''}`;
+  const ref=doc(db,'shared','trip');const snap=await getDoc(ref);if(!snap.exists())await setDoc(ref,defaultShared());
+  unsubscribe=onSnapshot(ref,(ds)=>{shared=ds.exists()?ds.data():defaultShared();renderAll()},(err)=>{authStatus.textContent='資料同步失敗：'+err.message});
+ }catch(e){authStatus.textContent='權限確認失敗：'+e.message}
+ renderAll();
+});
+renderDay(0);drawAllChecks();drawExpenses();
 </script>
 </body></html>

@@ -44,6 +44,16 @@ h2{font-size:25px;margin:0}
 .flight .label{font-size:13px;color:var(--muted)}
 .flight strong{font-size:27px;display:block}
 .flight .airport{font-size:14px}
+.flightform{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:8px 0 16px}
+.flightform label{display:block;font-size:13px;font-weight:bold}
+.day-edit-row{border:2px solid #ded5c9;border-radius:15px;padding:12px;margin:10px 0;background:#fffdf8}
+.day-edit-row .fixed-outline{font-weight:bold;margin-bottom:8px}
+.day-edit-row label{display:block;font-size:13px;font-weight:bold;margin:7px 0}
+.day-edit-row input,.day-edit-row textarea{display:block;width:100%;min-width:0;border:2px solid var(--ink);border-radius:11px;padding:9px;background:#fff;font:inherit;margin-top:4px}
+.day-edit-row textarea{min-height:58px;resize:vertical}
+.stop .resource-line,.stop .restaurant-line{margin:3px 0;font-size:14px}
+.flightform input{display:block;width:100%;min-width:0;border:2px solid var(--ink);border-radius:11px;padding:9px;background:#fff;margin-top:4px}
+@media(max-width:420px){.flightform{grid-template-columns:1fr 1fr}}
 .pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 9px;font-size:12px;margin:3px 4px 3px 0}
 .pink{background:var(--pink)}.yellow{background:var(--yellow)}.blue{background:var(--blue)}.green{background:var(--green)}
 .tabs{display:flex;gap:7px;overflow:auto;padding:3px 2px 10px;scrollbar-width:none}
@@ -147,10 +157,10 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
 <section id="flight">
  <div class="sectionhead"><h2>✈ 航班小卡</h2><span class="note">時間為目前規劃</span></div>
  <div class="flightgrid">
-  <div class="flight go"><span class="label">去程｜6/7（一）</span><strong>07:00</strong><span class="airport">台灣 → 沖繩</span><p class="smallprint">航班編號：待確認</p></div>
-  <div class="flight back"><span class="label">回程｜6/10（四）</span><strong>19:00</strong><span class="airport">沖繩 → 台灣</span><p class="smallprint">航班編號：待確認</p></div>
+  <div class="flight go"><span class="label">去程｜6/7（一）</span><strong id="flightGoTime">07:00</strong><span class="airport" id="flightGoRoute">台灣 → 沖繩</span><p class="smallprint" id="flightGoInfo">航空公司／航班編號：待確認</p><p class="smallprint" id="flightGoExtra">航廈／行李：待確認</p></div>
+  <div class="flight back"><span class="label">回程｜6/10（四）</span><strong id="flightBackTime">19:00</strong><span class="airport" id="flightBackRoute">沖繩 → 台灣</span><p class="smallprint" id="flightBackInfo">航空公司／航班編號：待確認</p><p class="smallprint" id="flightBackExtra">航廈／行李：待確認</p></div>
  </div>
- <div class="tip">✎ 建議補上航空公司、航班編號、機場航廈與行李額度。去程 07:00、回程 19:00，當天仍要預留租車還車與機場報到時間。</div>
+ <div class="tip">✎ 航班時間會與每日行程的第一天出發、最後一天回程時間連動；完整資料可在下方共同編輯區填寫。</div>
 </section>
 
 <section id="itinerary">
@@ -161,9 +171,34 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
  <div class="card" id="dayPanel" aria-live="polite"></div>
  <div class="card" id="dayEditor" hidden>
   <h3 style="margin-top:0">✏️ 編輯這一天的行程</h3>
-  <p class="smallprint">每一行一個行程，格式：時間｜地點｜備註。修改後按「同步行程」。</p>
-  <textarea id="dayText" rows="8" style="width:100%;border:2px solid var(--ink);border-radius:12px;padding:10px;font:inherit;background:#fff"></textarea>
-  <button class="btn" id="saveDay" style="margin-top:8px">同步行程</button>
+  <p class="smallprint">以下是固定行程大綱，順序、時段及階段名稱不能更動。只需填寫每個階段後面的地點／景點、餐廳及備註；沒有餐廳可留白。</p>
+  <div id="dayEditorRows"></div>
+  <button class="btn" id="saveDay" style="margin-top:8px">儲存並同步行程</button>
+ </div>
+ <div class="card" id="flightEditor" hidden>
+  <h3 style="margin-top:0">✈ 編輯航班資料</h3>
+  <p class="smallprint">填寫後按儲存，航班小卡會更新並同步給所有旅伴。航班時間也會同步到第一天／最後一天的行程時間。</p>
+  <h4>🛫 去程｜6/7</h4>
+  <div class="flightform">
+   <label>起飛時間<input id="flightGoTimeInput" type="time" value="07:00"></label>
+   <label>航空公司<input id="flightGoAirline" type="text" placeholder="例：長榮航空"></label>
+   <label>航班編號<input id="flightGoNumber" type="text" placeholder="例：BR112"></label>
+   <label>出發機場<input id="flightGoFrom" type="text" value="台灣"></label>
+   <label>抵達機場<input id="flightGoTo" type="text" value="沖繩那霸"></label>
+   <label>航廈<input id="flightGoTerminal" type="text" placeholder="待確認"></label>
+   <label>行李額度<input id="flightGoBaggage" type="text" placeholder="例：托運 23kg"></label>
+  </div>
+  <h4>🛬 回程｜6/10</h4>
+  <div class="flightform">
+   <label>起飛時間<input id="flightBackTimeInput" type="time" value="19:00"></label>
+   <label>航空公司<input id="flightBackAirline" type="text" placeholder="例：長榮航空"></label>
+   <label>航班編號<input id="flightBackNumber" type="text" placeholder="例：BR113"></label>
+   <label>出發機場<input id="flightBackFrom" type="text" value="沖繩那霸"></label>
+   <label>抵達機場<input id="flightBackTo" type="text" value="台灣"></label>
+   <label>航廈<input id="flightBackTerminal" type="text" placeholder="待確認"></label>
+   <label>行李額度<input id="flightBackBaggage" type="text" placeholder="例：托運 23kg"></label>
+  </div>
+  <button class="btn" id="saveFlights" style="margin-top:12px">儲存航班資料並同步</button>
  </div>
 </section>
 
@@ -250,6 +285,12 @@ const originalDays = [
  {date:"6 月 9 日・星期三",title:"中部慢遊：美國村與海邊",tag:"中部一日遊",stops:[["上午","睡飽、民宿早餐","可以安排慢一點，讓忻翰午睡作息比較穩定。","green"],["中午","美國村・午餐","逛街、吃飯、拍照，適合多人分組自由活動。","yellow"],["下午","北谷海邊散步","看海、喝飲料，遇雨可改逛室內商場。","blue"],["傍晚","晚餐・回民宿","可安排一頓大家一起吃的沖繩料理。","pink"]],tip:"這天保留彈性，不必塞滿景點。若住宿就在中北部，可依實際位置調整順序。"},
  {date:"6 月 10 日・星期四",title:"最後採買，帶著回憶回家",tag:"回程日",stops:[["上午","早餐、整理行李、退房","檢查護照、手機、充電器與孩子用品。","green"],["中午","瀨長島 Umikaji Terrace（備選）","靠近那霸機場，適合吃午餐、看海；注意天氣與停車。","blue"],["下午","國際通／機場周邊採買","依還車時間調整，不建議安排太遠的景點。","yellow"],["約 16:00","還車、前往機場","請依租車公司規定與航班報到時間提早還車。","pink"],["19:00","沖繩起飛・返回台灣","旅程結束！","blue"]],tip:"回程 19:00 不代表可以玩到最後一刻。還車、接駁、托運與安檢都要留緩衝。"}
 ];
+const fixedOutlines=[
+ ["去程搭機","抵達與入境","租車、午餐與採買","下午景點","入住與晚餐"],
+ ["早餐後出發","上午景點","午餐時段","下午景點","返回住宿與晚餐"],
+ ["早餐與休息","中午行程","下午行程","晚餐與返回住宿"],
+ ["早餐與退房","午餐與景點","下午採買","還車與前往機場","回程搭機"]
+];
 const todoItems=["確認 8 人護照效期與姓名拼音","確認機票、行李額度與座位","訂好 3 間以上臥室的包棟住宿","確認租車車型、駕駛與保險","確認兒童安全座椅／增高座椅需求","預約熱門餐廳或確認 8 人可入座","下載離線地圖、確認網路方案","準備旅平險與海外醫療保障","確認忻翰奶粉、尿布與備用用品"];
 const adultItems=["護照、機票與訂房資料","錢包、日圓現金、信用卡","手機、充電器、行動電源","轉接頭／充電線","換洗衣物、內衣褲、襪子","薄外套、雨具、防曬用品","舒適鞋、拖鞋","個人藥品、常備用品","盥洗用品、保養品","泳衣／海邊用品（視需要）"];
 const babyItems=["配方奶、奶粉分裝盒","奶瓶、奶嘴、奶瓶刷","尿布、濕紙巾、屁屁膏","奶瓶清潔用品／消毒用品","副食品、零食、寶寶餐具","水杯、圍兜、紗布巾","換洗衣物（多備 1～2 套）","薄外套、帽子、防曬用品","推車、背巾","安撫玩具、睡眠用品","常用藥品、體溫計、退熱用品","兒童安全座椅需求確認"];
@@ -262,6 +303,7 @@ const memberHelp=document.getElementById('memberHelp');
 const loginBtn=document.getElementById('loginBtn');
 const logoutBtn=document.getElementById('logoutBtn');
 const dayEditor=document.getElementById('dayEditor');
+const flightEditor=document.getElementById('flightEditor');
 
 function mapsUrl(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+" Okinawa Japan")}
 function safeText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -273,11 +315,22 @@ function currentDays(){
 function stopField(s,key,index){return Array.isArray(s)?s[index]:s[key]}
 function renderDay(i){
  activeDay=i; const d=currentDays()[i]||originalDays[i];
+ const outline=fixedOutlines[i]||[];
+ const stops=d.stops||[];
  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',+b.dataset.day===i));
- document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>${safeText(d.date)}</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${(d.stops||[]).map(s=>`<div class="stop"><time>${safeText(stopField(s,'time',0))}</time><h3>${safeText(stopField(s,'place',1))} ${stopField(s,'tag',4)?`<span class="pill must">${safeText(stopField(s,'tag',4))}</span>`:''}</h3><p>${safeText(stopField(s,'note',2))}</p><span class="pill ${safeText(stopField(s,'color',3)||'yellow')}">行程</span> <a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(stopField(s,'place',1))}">開啟地圖 ↗</a></div>`).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
+ document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>${safeText(d.date)}</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${stops.map((s,j)=>{const resource=stopField(s,'resource',undefined)||stopField(s,'place',1)||'';const restaurant=stopField(s,'restaurant',undefined)||'';const note=stopField(s,'note',2)||'';const time=stopField(s,'time',0)||'';return `<div class="stop"><time>${safeText(time)}</time><h3>${safeText(outline[j]||'行程階段')}</h3>${resource?`<p class="resource-line">📍 ${safeText(resource)}</p><a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(resource)}">景點地圖 ↗</a>`:''}${restaurant?`<p class="restaurant-line">🍽️ 餐廳：${safeText(restaurant)}</p><a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(restaurant)}">餐廳地圖 ↗</a>`:''}${note?`<p>${safeText(note)}</p>`:''}</div>`}).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
  const canEdit=isMember;
  dayEditor.hidden=!canEdit;
- if(canEdit){document.getElementById('dayText').value=(d.stops||[]).map(x=>`${stopField(x,'time',0)}｜${stopField(x,'place',1)}｜${stopField(x,'note',2)}`).join('\n')}
+ if(canEdit){
+  const rows=document.getElementById('dayEditorRows');rows.innerHTML='';
+  outline.forEach((label,j)=>{
+   const stop=stops[j]||{};const time=stopField(stop,'time',0)||'';const resource=stopField(stop,'resource',undefined)||stopField(stop,'place',1)||'';const restaurant=stopField(stop,'restaurant',undefined)||'';const note=stopField(stop,'note',2)||'';
+   const card=document.createElement('div');card.className='day-edit-row';
+   const heading=document.createElement('div');heading.className='fixed-outline';heading.textContent=`${j+1}. ${time}｜${label}（固定）`;
+   const makeField=(caption,id,value,placeholder,multiline=false)=>{const lab=document.createElement('label');lab.textContent=caption;const input=multiline?document.createElement('textarea'):document.createElement('input');if(!multiline)input.type='text';input.id=id;input.value=value;input.placeholder=placeholder;lab.append(input);return lab};
+   card.append(heading,makeField('地點／景點資源','dayResource'+j,resource,'例：美麗海水族館、古宇利島'),makeField('餐廳名稱','dayRestaurant'+j,restaurant,'例：餐廳名稱／訂位資訊（可留白）'),makeField('備註','dayNote'+j,note,'例：地址、預約時間、注意事項',true));rows.append(card);
+  });
+ }
 }
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>renderDay(+b.dataset.day)));
 const dep=new Date('2027-06-07T00:00:00');const today=new Date();today.setHours(0,0,0,0);document.getElementById('days').textContent=Math.max(0,Math.ceil((dep-today)/86400000));
@@ -285,7 +338,7 @@ const dep=new Date('2027-06-07T00:00:00');const today=new Date();today.setHours(
 function defaultShared(){
  const days={};
  originalDays.forEach((d,i)=>{days[String(i)]={...d,stops:d.stops.map(s=>({time:s[0],place:s[1],note:s[2],color:s[3]||'yellow',tag:s[4]||''}))}});
- return {days,todo:[],adult:[],baby:[],expenses:[]};
+ return {days,flight:{go:{time:'07:00',airline:'',number:'',from:'台灣',to:'沖繩那霸',terminal:'',baggage:''},back:{time:'19:00',airline:'',number:'',from:'沖繩那霸',to:'台灣',terminal:'',baggage:''}},todo:[],adult:[],baby:[],expenses:[]};
 }
 // 將共享資料序列化成單一字串儲存，徹底避免 Firestore 巢狀陣列限制。
 async function persistShared(patch){
@@ -301,6 +354,26 @@ function readShared(snapshot){
  // 相容舊版資料格式
  return data;
 }
+function flightData(){
+ const base=defaultShared().flight;
+ const f=shared?.flight||{};
+ return {go:{...base.go,...(f.go||{})},back:{...base.back,...(f.back||{})}};
+}
+function renderFlights(){
+ const f=flightData();
+ document.getElementById('flightGoTime').textContent=f.go.time||'待確認';
+ document.getElementById('flightBackTime').textContent=f.back.time||'待確認';
+ document.getElementById('flightGoRoute').textContent=`${f.go.from||'出發地待確認'} → ${f.go.to||'抵達地待確認'}`;
+ document.getElementById('flightBackRoute').textContent=`${f.back.from||'出發地待確認'} → ${f.back.to||'抵達地待確認'}`;
+ document.getElementById('flightGoInfo').textContent=`${f.go.airline||'航空公司待確認'}／${f.go.number||'航班編號待確認'}`;
+ document.getElementById('flightBackInfo').textContent=`${f.back.airline||'航空公司待確認'}／${f.back.number||'航班編號待確認'}`;
+ document.getElementById('flightGoExtra').textContent=`航廈：${f.go.terminal||'待確認'}｜行李：${f.go.baggage||'待確認'}`;
+ document.getElementById('flightBackExtra').textContent=`航廈：${f.back.terminal||'待確認'}｜行李：${f.back.baggage||'待確認'}`;
+ flightEditor.hidden=!isMember;
+ const fields={flightGoTimeInput:f.go.time,flightGoAirline:f.go.airline,flightGoNumber:f.go.number,flightGoFrom:f.go.from,flightGoTo:f.go.to,flightGoTerminal:f.go.terminal,flightGoBaggage:f.go.baggage,flightBackTimeInput:f.back.time,flightBackAirline:f.back.airline,flightBackNumber:f.back.number,flightBackFrom:f.back.from,flightBackTo:f.back.to,flightBackTerminal:f.back.terminal,flightBackBaggage:f.back.baggage};
+ for(const [id,value] of Object.entries(fields)){const el=document.getElementById(id);if(el && document.activeElement!==el)el.value=value||'';if(el)el.disabled=!isMember;}
+ document.getElementById('saveFlights').disabled=!isMember;
+}
 function drawChecks(id,items,key,progressId){
  const el=document.getElementById(id);el.innerHTML='';
  items.forEach((t,i)=>{const checked=!!(shared?.[key]?.[i]);const lab=document.createElement('label');lab.className='checkrow'+(checked?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=checked;cb.disabled=!isMember;cb.addEventListener('change',async()=>{const next=[...(shared[key]||[])];next[i]=cb.checked;await persistShared({[key]:next})});const span=document.createElement('span');span.textContent=t;lab.append(cb,span);el.append(lab)});
@@ -309,13 +382,31 @@ function drawChecks(id,items,key,progressId){
 function drawAllChecks(){drawChecks('todoList',todoItems,'todo','todoProgress');drawChecks('adultList',adultItems,'adult','adultProgress');drawChecks('babyList',babyItems,'baby','babyProgress');const n=(shared?.todo||[]).filter(Boolean).length;document.getElementById('todoCount').textContent=`${n} / ${todoItems.length} 完成`}
 function money(n){return 'NT$'+Math.round(n).toLocaleString('zh-TW')}
 function drawExpenses(){const expenses=shared?.expenses||[];const total=expenses.reduce((a,x)=>a+Number(x.amount||0),0);document.getElementById('total').textContent=money(total);document.getElementById('perPerson').textContent=money(total/6);const list=document.getElementById('expenseList');list.innerHTML='';if(!expenses.length){list.innerHTML='<p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p>';return}expenses.forEach((x,i)=>{const row=document.createElement('div');row.className='expense';const left=document.createElement('span');left.textContent=x.name;const right=document.createElement('b');right.textContent=money(x.amount);const del=document.createElement('button');del.textContent='✕';del.setAttribute('aria-label','刪除支出');del.disabled=!isMember;del.onclick=async()=>{const next=expenses.filter((_,j)=>j!==i);await persistShared({expenses:next})};row.append(left,right,del);list.append(row)})}
-function renderAll(){renderDay(activeDay);drawAllChecks();drawExpenses();document.getElementById('addExpense').disabled=!isMember;document.getElementById('expenseName').disabled=!isMember;document.getElementById('expenseAmount').disabled=!isMember;}
+function renderAll(){renderDay(activeDay);renderFlights();drawAllChecks();drawExpenses();document.getElementById('addExpense').disabled=!isMember;document.getElementById('expenseName').disabled=!isMember;document.getElementById('expenseAmount').disabled=!isMember;}
 
 document.getElementById('saveDay').addEventListener('click',async()=>{
- if(!isMember)return;const lines=document.getElementById('dayText').value.split(/\n/).map(x=>x.trim()).filter(Boolean);const stops=[];
- for(const line of lines){const parts=line.split('｜');if(parts.length<3){alert('每一行請用「時間｜地點｜備註」格式');return}stops.push({time:parts[0].trim(),place:parts[1].trim(),note:parts.slice(2).join('｜').trim(),color:'yellow',tag:''})}
- if(!stops.length){alert('至少保留一個行程項目');return}
- const days={};currentDays().forEach((d,i)=>{days[String(i)]=i===activeDay?{...d,stops}:d});await persistShared({days});alert('行程已同步給旅伴！');
+ if(!isMember)return;
+ const current=currentDays();const d=current[activeDay]||originalDays[activeDay];const baseStops=d.stops||[];
+ const stops=(fixedOutlines[activeDay]||[]).map((outline,j)=>{
+  const old=baseStops[j]||originalDays[activeDay].stops[j]||[];
+  const get=(id)=>document.getElementById(id)?.value.trim()||'';
+  const time=stopField(old,'time',0)||'';
+  return {time,outline,resource:get('dayResource'+j),place:get('dayResource'+j),restaurant:get('dayRestaurant'+j),note:get('dayNote'+j),color:stopField(old,'color',3)||'yellow',tag:stopField(old,'tag',4)||''};
+ });
+ const days={};current.forEach((day,i)=>{days[String(i)]=i===activeDay?{...day,stops}:day});
+ const flight=flightData();
+ if(activeDay===0 && stops.length)flight.go.time=stops[0].time;
+ if(activeDay===3 && stops.length)flight.back.time=stops[stops.length-1].time;
+ await persistShared({days,flight});alert('固定大綱下的地點、餐廳與備註已同步給所有旅伴！');
+});
+document.getElementById('saveFlights').addEventListener('click',async()=>{
+ if(!isMember)return;
+ const val=id=>document.getElementById(id).value.trim();
+ const go={time:val('flightGoTimeInput'),airline:val('flightGoAirline'),number:val('flightGoNumber'),from:val('flightGoFrom'),to:val('flightGoTo'),terminal:val('flightGoTerminal'),baggage:val('flightGoBaggage')};
+ const back={time:val('flightBackTimeInput'),airline:val('flightBackAirline'),number:val('flightBackNumber'),from:val('flightBackFrom'),to:val('flightBackTo'),terminal:val('flightBackTerminal'),baggage:val('flightBackBaggage')};
+ if(!go.time||!back.time){alert('請先填寫去程及回程起飛時間');return}
+ const days={};currentDays().forEach((d,i)=>{const stops=[...(d.stops||[])];if(i===0&&stops.length){const first=Array.isArray(stops[0])?[...stops[0]]:{...stops[0]};if(Array.isArray(first))first[0]=go.time;else first.time=go.time;stops[0]=first;}if(i===3&&stops.length){const last=Array.isArray(stops[stops.length-1])?[...stops[stops.length-1]]:{...stops[stops.length-1]};if(Array.isArray(last))last[0]=back.time;else last.time=back.time;stops[stops.length-1]=last;}days[String(i)]={...d,stops};});
+ await persistShared({flight:{go,back},days});alert('航班資料已儲存，航班小卡與每日行程都已同步！');
 });
 document.getElementById('addExpense').addEventListener('click',async()=>{if(!isMember)return;const name=document.getElementById('expenseName').value.trim();const amount=Number(document.getElementById('expenseAmount').value);if(!name||!Number.isFinite(amount)||amount<=0){alert('請填寫支出項目與正確金額');return}const expenses=[...(shared?.expenses||[]),{name,amount}];await persistShared({expenses});document.getElementById('expenseName').value='';document.getElementById('expenseAmount').value='';});
 loginBtn.addEventListener('click',async()=>{try{await signInWithPopup(auth,provider)}catch(e){alert('登入失敗：'+(e.message||e))}});
@@ -338,6 +429,6 @@ onAuthStateChanged(auth,async(user)=>{
  }catch(e){authStatus.textContent='權限確認失敗：'+e.message}
  renderAll();
 });
-renderDay(0);drawAllChecks();drawExpenses();
+renderDay(0);renderFlights();drawAllChecks();drawExpenses();
 </script>
 </body></html>

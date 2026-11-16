@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFCF6">
+<title>沖繩小旅行｜2027.06.07—06.10</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
+:root{
+ --paper:#FFFCF6;--ink:#3E3A39;--pink:#F2A497;--yellow:#F6D27A;--blue:#A8D3E6;--green:#B9DAA5;
+ --muted:#827b73;--line:3px solid var(--ink);--radius:24px;--shadow:4px 4px 0 var(--ink);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Huninn',system-ui,sans-serif;line-height:1.55}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.wrap{width:min(100% - 28px,900px);margin:auto}
+nav{position:sticky;top:0;z-index:20;background:rgba(255,252,246,.96);border-bottom:2px solid var(--ink);backdrop-filter:blur(8px)}
+.navinner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
+.brand{font-size:18px;font-weight:bold;white-space:nowrap}
+.navlinks{display:flex;gap:6px;overflow:auto;scrollbar-width:none}
+.navlinks a{white-space:nowrap;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:5px 10px;font-size:13px;background:#fff}
+.hero{padding:24px 0 18px}
+.hero-card{border:var(--line);border-radius:30px;box-shadow:var(--shadow);overflow:hidden;background:#fff;padding:20px;position:relative}
+.kicker{display:inline-block;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:4px 12px;font-size:13px}
+h1{font-size:clamp(32px,8vw,54px);line-height:1.12;margin:14px 0 8px}
+.sub{color:var(--muted);margin:0}
+.heroart{width:100%;height:auto;display:block;margin:12px auto 0;max-height:230px}
+.countgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.count{border:2px solid var(--ink);border-radius:16px;padding:8px;text-align:center;background:var(--paper)}
+.count b{display:block;font-size:23px}
+.count small{color:var(--muted)}
+section{padding:18px 0;scroll-margin-top:80px}
+.sectionhead{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:12px}
+h2{font-size:25px;margin:0}
+.note{font-size:13px;color:var(--muted)}
+.card{background:#fff;border:var(--line);border-radius:var(--radius);padding:16px;box-shadow:3px 3px 0 var(--ink);margin-bottom:12px}
+.flightgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.flight{border:2px solid var(--ink);border-radius:18px;padding:14px;background:#fff}
+.flight.go{background:#fff0eb}.flight.back{background:#eef8fc}
+.flight .label{font-size:13px;color:var(--muted)}
+.flight strong{font-size:27px;display:block}
+.flight .airport{font-size:14px}
+.pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 9px;font-size:12px;margin:3px 4px 3px 0}
+.pink{background:var(--pink)}.yellow{background:var(--yellow)}.blue{background:var(--blue)}.green{background:var(--green)}
+.tabs{display:flex;gap:7px;overflow:auto;padding:3px 2px 10px;scrollbar-width:none}
+.tab{flex:1;min-width:78px;border:2px solid var(--ink);border-radius:15px;background:#fff;padding:9px 7px;font-weight:bold}
+.tab.active{background:var(--yellow);transform:translateY(-2px);box-shadow:2px 2px 0 var(--ink)}
+.daytitle{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:4px 0 12px}
+.daytitle strong{font-size:20px}
+.timeline{position:relative;padding-left:23px}
+.timeline:before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:3px;background:var(--ink);border-radius:3px}
+.stop{position:relative;margin:0 0 14px}
+.stop:before{content:"";position:absolute;left:-22px;top:7px;width:13px;height:13px;border:2px solid var(--ink);border-radius:50%;background:var(--yellow)}
+.stop time{font-size:13px;color:var(--muted);font-weight:bold}
+.stop h3{margin:2px 0;font-size:18px}
+.stop p{margin:3px 0 7px;font-size:14px}
+.maplink{display:inline-block;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;background:var(--blue)}
+.must{background:var(--pink)}
+.tip{background:#fff8df;border:2px dashed var(--ink);border-radius:16px;padding:11px;font-size:13px;margin-top:12px}
+.mapgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mapitem{border:2px solid var(--ink);border-radius:16px;padding:11px;background:#fff;text-decoration:none;display:block}
+.mapitem b{display:block}
+.mapitem small{color:var(--muted)}
+.row{display:flex;align-items:center;gap:8px}
+.row>*:first-child{flex:1}
+input[type="text"],input[type="number"],select{width:100%;border:2px solid var(--ink);border-radius:12px;padding:10px;background:#fff;min-width:0}
+.btn{border:2px solid var(--ink);border-radius:999px;padding:9px 14px;background:var(--yellow);font-weight:bold}
+.btn.secondary{background:#fff}
+.btn.danger{background:#ffe5e1}
+.expenseform{display:grid;grid-template-columns:1.3fr .8fr auto;gap:7px;margin:12px 0}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.stat{border:2px solid var(--ink);border-radius:15px;padding:10px;background:var(--paper);text-align:center}
+.stat b{display:block;font-size:19px}
+.stat small{font-size:12px;color:var(--muted)}
+.expense{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px dashed #bdb5aa;padding:9px 0}
+.expense:last-child{border:0}
+.expense button{border:0;background:transparent;font-size:18px}
+.checklist{display:grid;gap:7px}
+.checkrow{display:flex;align-items:flex-start;gap:9px;border:2px solid #ddd4c8;border-radius:13px;padding:9px;background:#fff}
+.checkrow input{width:20px;height:20px;accent-color:#83b87b;flex:0 0 auto;margin-top:2px}
+.checkrow.done span{text-decoration:line-through;color:#9a938a}
+.progress{height:12px;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:#fff;margin:8px 0 13px}
+.progress>div{height:100%;background:var(--green);width:0;transition:width .2s}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13px}
+.smallprint{font-size:12px;color:var(--muted)}
+@media(min-width:650px){.hero-card{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:20px}.heroart{max-height:260px}.two{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.wrap{width:min(100% - 20px,900px)}.navinner{align-items:flex-start;flex-direction:column}.navlinks{width:100%}.flightgrid{gap:7px}.flight{padding:10px}.flight strong{font-size:23px}.mapgrid{grid-template-columns:1fr}.expenseform{grid-template-columns:1fr 100px}.expenseform button{grid-column:1/-1}.stat b{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<nav><div class="wrap navinner">
+ <div class="brand">🌺 沖繩小旅行</div>
+ <div class="navlinks">
+  <a href="#flight">航班</a><a href="#itinerary">每日行程</a><a href="#budget">旅費分帳</a><a href="#todo">待辦清單</a><a href="#packing">行李清單</a>
+ </div>
+</div></nav>
+<main class="wrap">
+<header class="hero">
+ <div class="hero-card">
+  <div>
+   <span class="kicker">OUR LITTLE OKINAWA TRIP ✈</span>
+   <h1>沖繩，<br>一起慢慢玩。</h1>
+   <p class="sub">2027.06.07 — 06.10｜四天三夜｜8人小旅行</p>
+   <div class="countgrid">
+    <div class="count"><b id="days">—</b><small>距離出發日</small></div>
+    <div class="count"><b>4</b><small>旅行天數</small></div>
+    <div class="count"><b>8</b><small>一起出發的人</small></div>
+   </div>
+  </div>
+  <svg class="heroart" viewBox="0 0 520 250" role="img" aria-label="沖繩海洋、飛機與鯨鯊插畫">
+   <path d="M20 190 Q90 150 160 190 T300 190 T500 185 L500 250 L20 250Z" fill="#A8D3E6" stroke="#3E3A39" stroke-width="4"/>
+   <path d="M30 205q22-15 44 0t44 0t44 0t44 0t44 0t44 0t44 0t44 0t44 0t44 0" fill="none" stroke="#3E3A39" stroke-width="3"/>
+   <path d="M300 90 Q365 45 430 92 Q465 118 435 155 Q390 194 325 151 Q285 125 300 90Z" fill="#7fb4cb" stroke="#3E3A39" stroke-width="4"/>
+   <path d="M326 88q40 20 85 0M322 111q48 20 103 0M330 135q42 15 82 0" fill="none" stroke="#3E3A39" stroke-width="3"/>
+   <circle cx="420" cy="105" r="5" fill="#3E3A39"/><path d="M302 115l-35-25 5 48-28 24 45-3" fill="#7fb4cb" stroke="#3E3A39" stroke-width="4"/>
+   <path d="M75 70l90-20 35 10-37 9-16 28-10-2 6-27-57 13Z" fill="#F6D27A" stroke="#3E3A39" stroke-width="4" stroke-linejoin="round"/>
+   <path d="M180 51q22-18 42 0" fill="none" stroke="#3E3A39" stroke-width="3" stroke-linecap="round"/>
+   <path d="M60 170q-5-45 24-65 30 20 25 65" fill="#B9DAA5" stroke="#3E3A39" stroke-width="4"/>
+   <path d="M83 111v59M64 136l19 15 20-16" fill="none" stroke="#3E3A39" stroke-width="3"/>
+   <path d="M210 185q12-35 25 0" fill="#F2A497" stroke="#3E3A39" stroke-width="3"/>
+   <circle cx="235" cy="175" r="10" fill="#F2A497" stroke="#3E3A39" stroke-width="3"/>
+   <path d="M230 164l-8-10 14 5 10-8-2 15" fill="#F6D27A" stroke="#3E3A39" stroke-width="3"/>
+   <path d="M250 35l5-12 5 12 12 5-12 5-5 12-5-12-12-5Z" fill="#F2A497" stroke="#3E3A39" stroke-width="2"/>
+  </svg>
+ </div>
+ <p class="smallprint" style="margin:12px 4px 0">小提醒：目前行程為可調整的初稿；住宿、航班編號與租車資料確認後再補上。</p>
+</header>
+
+<section id="flight">
+ <div class="sectionhead"><h2>✈ 航班小卡</h2><span class="note">時間為目前規劃</span></div>
+ <div class="flightgrid">
+  <div class="flight go"><span class="label">去程｜6/7（一）</span><strong>07:00</strong><span class="airport">台灣 → 沖繩</span><p class="smallprint">航班編號：待確認</p></div>
+  <div class="flight back"><span class="label">回程｜6/10（四）</span><strong>19:00</strong><span class="airport">沖繩 → 台灣</span><p class="smallprint">航班編號：待確認</p></div>
+ </div>
+ <div class="tip">✎ 建議補上航空公司、航班編號、機場航廈與行李額度。去程 07:00、回程 19:00，當天仍要預留租車還車與機場報到時間。</div>
+</section>
+
+<section id="itinerary">
+ <div class="sectionhead"><h2>🗓 每日行程</h2><span class="note">點日期切換</span></div>
+ <div class="tabs" id="dayTabs">
+  <button class="tab active" data-day="0">D1 · 6/7</button><button class="tab" data-day="1">D2 · 6/8</button><button class="tab" data-day="2">D3 · 6/9</button><button class="tab" data-day="3">D4 · 6/10</button>
+ </div>
+ <div class="card" id="dayPanel" aria-live="polite"></div>
+</section>
+
+<section id="map">
+ <div class="sectionhead"><h2>📍 景點地圖捷徑</h2><span class="note">點一下開啟地圖</span></div>
+ <div class="mapgrid">
+  <a class="mapitem" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Okinawa+Churaumi+Aquarium"><b>🐋 美麗海水族館</b><small>北部・本部町</small></a>
+  <a class="mapitem" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Kouri+Island+Okinawa"><b>🌉 古宇利島</b><small>北部・海景</small></a>
+  <a class="mapitem" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=American+Village+Okinawa"><b>🎡 美國村</b><small>中部・北谷</small></a>
+  <a class="mapitem" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Senagajima+Umikaji+Terrace"><b>☁️ 瀨長島</b><small>南部・海景商店</small></a>
+  <a class="mapitem" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Kokusai+Dori+Naha"><b>🛍️ 國際通</b><small>那霸・購物美食</small></a>
+  <a class="mapitem" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Okinawa+Prefectural+Peace+Memorial+Museum"><b>🌳 沖繩南部景點</b><small>南部・備選行程</small></a>
+ </div>
+</section>
+
+<section id="budget">
+ <div class="sectionhead"><h2>💰 8 人旅費分帳</h2><span class="note">新增支出會自動平均</span></div>
+ <div class="card">
+  <div class="statgrid">
+   <div class="stat"><small>目前總支出</small><b id="total">NT$0</b></div>
+   <div class="stat"><small>每人平均</small><b id="perPerson">NT$0</b></div>
+   <div class="stat"><small>同行人數</small><b>8 人</b></div>
+  </div>
+  <div class="expenseform">
+   <input id="expenseName" type="text" placeholder="支出項目（例：包棟住宿）">
+   <input id="expenseAmount" type="number" min="0" step="1" placeholder="金額 NT$">
+   <button class="btn" id="addExpense">＋新增</button>
+  </div>
+  <div id="expenseList"><p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p></div>
+  <div class="tip">分帳目前採「總額 ÷ 8 人」平均估算。若小孩、不同家庭或個別付款方式需要不同分攤，可再調整規則。</div>
+ </div>
+</section>
+
+<section id="todo">
+ <div class="sectionhead"><h2>☑ 出發前待辦</h2><span class="note" id="todoCount">0 / 0 完成</span></div>
+ <div class="card">
+  <div class="progress"><div id="todoProgress"></div></div>
+  <div class="checklist" id="todoList"></div>
+ </div>
+</section>
+
+<section id="packing">
+ <div class="sectionhead"><h2>🧳 行李清單</h2><span class="note">勾選後會自動保存</span></div>
+ <div class="two">
+  <div class="card"><h3 style="margin-top:0">👨‍👩‍👧 大人共用</h3><div class="progress"><div id="adultProgress"></div></div><div class="checklist" id="adultList"></div></div>
+  <div class="card"><h3 style="margin-top:0">🧸 忻翰專屬</h3><div class="progress"><div id="babyProgress"></div></div><div class="checklist" id="babyList"></div></div>
+ </div>
+</section>
+
+<section id="stay">
+ <div class="sectionhead"><h2>🏡 住宿與租車</h2><span class="note">確認後填入</span></div>
+ <div class="card">
+  <p><b>住宿名稱：</b>尚未決定</p><p><b>住宿地址：</b>待確認</p><p><b>入住／退房：</b>6/7 入住・6/10 退房</p>
+  <hr style="border:0;border-top:1px dashed #bdb5aa">
+  <p><b>租車公司／取車時間：</b>待確認</p><p><b>車型／車輛數：</b>待確認（8 人請先確認行李容量與乘坐配置）</p>
+  <p class="smallprint">住宿與租車資訊確定後，建議將地址、電話、訂單編號與取還車地點補齊。</p>
+ </div>
+</section>
+</main>
+<footer>沖繩小旅行 2027 · 帶著好心情出發 🌺<br><span>清單與旅費會保存在目前裝置的瀏覽器中。</span></footer>
+
+<script>
+const tripDays = [
+ {date:"6 月 7 日・星期一",title:"抵達沖繩，慢慢開啟假期",tag:"抵達日",stops:[
+  ["07:00","台灣出發","搭機前往沖繩。航班與機場資訊待補。","pink"],
+  ["上午","抵達那霸・入境領行李","預留入境、領行李與集合時間。","blue"],
+  ["中午","租車、午餐、超市採買","8 人同行請先確認車輛與行李空間；採買飲水、早餐及孩子用品。","green"],
+  ["下午","首里城公園（彈性安排）","視抵達時間與大家精神狀況決定，不必硬塞景點。","yellow"],
+  ["傍晚","入住包棟・晚餐休息","先讓孩子熟悉環境，整理隔天要帶的物品。","pink"]
+ ],tip:"第一天不要排太滿。若航班延誤或租車手續較久，首里城可直接取消。"},
+ {date:"6 月 8 日・星期二",title:"北部海洋日：鯨鯊與古宇利島",tag:"北部一日遊",stops:[
+  ["08:00","民宿早餐、出發","建議早點出發，車程依住宿地點而定。","green"],
+  ["上午","美麗海水族館","必去！建議預留約 2～3 小時，含大型水槽、展區與休息。","blue","必去"],
+  ["中午","本部町午餐","找適合多人入座的餐廳，先確認是否接受 8 人訂位。","yellow"],
+  ["下午","古宇利島・古宇利大橋","看海、拍照、吃點心；依天氣及孩子狀態彈性停留。","blue"],
+  ["傍晚","返回住宿・晚餐","北部回程較長，預留休息與塞車時間。","pink"]
+ ],tip:"美麗海水族館與古宇利島是同一個北部方向，適合排同一天。若下雨，可延長水族館時間。"},
+ {date:"6 月 9 日・星期三",title:"中部慢遊：美國村與海邊",tag:"中部一日遊",stops:[
+  ["上午","睡飽、民宿早餐","可以安排慢一點，讓忻翰午睡作息比較穩定。","green"],
+  ["中午","美國村・午餐","逛街、吃飯、拍照，適合多人分組自由活動。","yellow"],
+  ["下午","北谷海邊散步","看海、喝飲料，遇雨可改逛室內商場。","blue"],
+  ["傍晚","晚餐・回民宿","可安排一頓大家一起吃的沖繩料理。","pink"]
+ ],tip:"這天保留彈性，不必塞滿景點。若住宿就在中北部，可依實際位置調整順序。"},
+ {date:"6 月 10 日・星期四",title:"最後採買，帶著回憶回家",tag:"回程日",stops:[
+  ["上午","早餐、整理行李、退房","檢查護照、手機、充電器與孩子用品。","green"],
+  ["中午","瀨長島 Umikaji Terrace（備選）","靠近那霸機場，適合吃午餐、看海；注意天氣與停車。","blue"],
+  ["下午","國際通／機場周邊採買","依還車時間調整，不建議安排太遠的景點。","yellow"],
+  ["約 16:00","還車、前往機場","請依租車公司規定與航班報到時間提早還車。","pink"],
+  ["19:00","沖繩起飛・返回台灣","旅程結束！","blue"]
+ ],tip:"回程 19:00 不代表可以玩到最後一刻。還車、接駁、托運與安檢都要留緩衝。"}
+];
+function mapsUrl(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+" Okinawa Japan")}
+function renderDay(i){
+ const d=tripDays[i];document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",+b.dataset.day===i));
+ document.getElementById("dayPanel").innerHTML=`<div class="daytitle"><strong>${d.date}</strong><span class="pill yellow">${d.tag}</span></div><h3 style="margin:0 0 14px">${d.title}</h3><div class="timeline">${d.stops.map(s=>`<div class="stop"><time>${s[0]}</time><h3>${s[1]} ${s[4]?`<span class="pill must">${s[4]}</span>`:""}</h3><p>${s[2]}</p><span class="pill ${s[3]}">${s[1].includes("租車")?"交通／移動":s[1].includes("出發")?"航班": "行程"}</span> <a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(s[1])}">開啟地圖 ↗</a></div>`).join("")}</div><div class="tip">💡 ${d.tip}</div>`;
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>renderDay(+b.dataset.day)));
+renderDay(0);
+const dep=new Date("2027-06-07T00:00:00");const today=new Date();today.setHours(0,0,0,0);document.getElementById("days").textContent=Math.max(0,Math.ceil((dep-today)/86400000));
+const KEY="okinawaTrip2027_v1";
+let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+function persist(){localStorage.setItem(KEY,JSON.stringify(saved))}
+const todoItems=["確認 8 人護照效期與姓名拼音","確認機票、行李額度與座位","訂好 3 間以上臥室的包棟住宿","確認租車車型、駕駛與保險","確認兒童安全座椅／增高座椅需求","預約熱門餐廳或確認 8 人可入座","下載離線地圖、確認網路方案","準備旅平險與海外醫療保障","確認忻翰奶粉、尿布與備用用品"];
+const adultItems=["護照、機票與訂房資料","錢包、日圓現金、信用卡","手機、充電器、行動電源","轉接頭／充電線","換洗衣物、內衣褲、襪子","薄外套、雨具、防曬用品","舒適鞋、拖鞋","個人藥品、常備用品","盥洗用品、保養品","泳衣／海邊用品（視需要）"];
+const babyItems=["配方奶、奶粉分裝盒","奶瓶、奶嘴、奶瓶刷","尿布、濕紙巾、屁屁膏","奶瓶清潔用品／消毒用品","副食品、零食、寶寶餐具","水杯、圍兜、紗布巾","換洗衣物（多備 1～2 套）","薄外套、帽子、防曬用品","推車、背巾","安撫玩具、睡眠用品","常用藥品、體溫計、退熱用品","兒童安全座椅需求確認"];
+function drawChecks(id,items,key,progressId){
+ const el=document.getElementById(id);el.innerHTML="";
+ items.forEach((t,i)=>{const checked=!!(saved[key]&&saved[key][i]);const lab=document.createElement("label");lab.className="checkrow"+(checked?" done":"");const cb=document.createElement("input");cb.type="checkbox";cb.checked=checked;cb.addEventListener("change",()=>{saved[key]=saved[key]||[];saved[key][i]=cb.checked;persist();drawAllChecks()});const span=document.createElement("span");span.textContent=t;lab.append(cb,span);el.append(lab)});
+ const n=(saved[key]||[]).filter(Boolean).length;const p=Math.round(n/items.length*100);document.getElementById(progressId).style.width=p+"%";
+}
+function drawAllChecks(){drawChecks("todoList",todoItems,"todo","todoProgress");drawChecks("adultList",adultItems,"adult","adultProgress");drawChecks("babyList",babyItems,"baby","babyProgress");const n=(saved.todo||[]).filter(Boolean).length;document.getElementById("todoCount").textContent=`${n} / ${todoItems.length} 完成`}
+drawAllChecks();
+let expenses=saved.expenses||[];
+function money(n){return "NT$"+Math.round(n).toLocaleString("zh-TW")}
+function drawExpenses(){const total=expenses.reduce((a,x)=>a+x.amount,0);document.getElementById("total").textContent=money(total);document.getElementById("perPerson").textContent=money(total/8);const list=document.getElementById("expenseList");if(!expenses.length){list.innerHTML='<p class="smallprint">尚未新增支出。可以先登記機票、住宿、租車、油錢等。</p>';return}list.innerHTML="";expenses.forEach((x,i)=>{const row=document.createElement("div");row.className="expense";const left=document.createElement("span");left.textContent=x.name;const right=document.createElement("b");right.textContent=money(x.amount);const del=document.createElement("button");del.setAttribute("aria-label","刪除支出");del.textContent="✕";del.onclick=()=>{expenses.splice(i,1);saved.expenses=expenses;persist();drawExpenses()};row.append(left,right,del);list.append(row)})}
+document.getElementById("addExpense").addEventListener("click",()=>{const name=document.getElementById("expenseName").value.trim();const amount=Number(document.getElementById("expenseAmount").value);if(!name||!Number.isFinite(amount)||amount<=0){alert("請填寫支出項目與正確金額");return}expenses.push({name,amount});saved.expenses=expenses;persist();document.getElementById("expenseName").value="";document.getElementById("expenseAmount").value="";drawExpenses()});
+drawExpenses();
+</script>
+</body></html>

@@ -266,18 +266,19 @@ const dayEditor=document.getElementById('dayEditor');
 function mapsUrl(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+" Okinawa Japan")}
 function safeText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function currentDays(){return shared?.days?.length ? shared.days : originalDays}
+function stopField(s,key,index){return Array.isArray(s)?s[index]:s[key]}
 function renderDay(i){
  activeDay=i; const d=currentDays()[i]||originalDays[i];
  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',+b.dataset.day===i));
- document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>${safeText(d.date)}</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${(d.stops||[]).map(s=>`<div class="stop"><time>${safeText(s[0])}</time><h3>${safeText(s[1])} ${s[4]?`<span class="pill must">${safeText(s[4])}</span>`:''}</h3><p>${safeText(s[2])}</p><span class="pill ${safeText(s[3]||'yellow')}">行程</span> <a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(s[1])}">開啟地圖 ↗</a></div>`).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
+ document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>${safeText(d.date)}</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${(d.stops||[]).map(s=>`<div class="stop"><time>${safeText(stopField(s,'time',0))}</time><h3>${safeText(stopField(s,'place',1))} ${stopField(s,'tag',4)?`<span class="pill must">${safeText(stopField(s,'tag',4))}</span>`:''}</h3><p>${safeText(stopField(s,'note',2))}</p><span class="pill ${safeText(stopField(s,'color',3)||'yellow')}">行程</span> <a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(stopField(s,'place',1))}">開啟地圖 ↗</a></div>`).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
  const canEdit=isMember;
  dayEditor.hidden=!canEdit;
- if(canEdit){document.getElementById('dayText').value=(d.stops||[]).map(x=>`${x[0]}｜${x[1]}｜${x[2]}`).join('\n')}
+ if(canEdit){document.getElementById('dayText').value=(d.stops||[]).map(x=>`${stopField(x,'time',0)}｜${stopField(x,'place',1)}｜${stopField(x,'note',2)}`).join('\n')}
 }
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>renderDay(+b.dataset.day)));
 const dep=new Date('2027-06-07T00:00:00');const today=new Date();today.setHours(0,0,0,0);document.getElementById('days').textContent=Math.max(0,Math.ceil((dep-today)/86400000));
 
-function defaultShared(){return {days:originalDays,todo:[],adult:[],baby:[],expenses:[]}}
+function defaultShared(){return {days:originalDays.map(d=>({...d,stops:d.stops.map(s=>({time:s[0],place:s[1],note:s[2],color:s[3]||'yellow',tag:s[4]||''}))})),todo:[],adult:[],baby:[],expenses:[]}}
 function drawChecks(id,items,key,progressId){
  const el=document.getElementById(id);el.innerHTML='';
  items.forEach((t,i)=>{const checked=!!(shared?.[key]?.[i]);const lab=document.createElement('label');lab.className='checkrow'+(checked?' done':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=checked;cb.disabled=!isMember;cb.addEventListener('change',async()=>{const next=[...(shared[key]||[])];next[i]=cb.checked;await updateDoc(doc(db,'shared','trip'),{[key]:next})});const span=document.createElement('span');span.textContent=t;lab.append(cb,span);el.append(lab)});
@@ -290,7 +291,7 @@ function renderAll(){renderDay(activeDay);drawAllChecks();drawExpenses();documen
 
 document.getElementById('saveDay').addEventListener('click',async()=>{
  if(!isMember)return;const lines=document.getElementById('dayText').value.split(/\n/).map(x=>x.trim()).filter(Boolean);const stops=[];
- for(const line of lines){const parts=line.split('｜');if(parts.length<3){alert('每一行請用「時間｜地點｜備註」格式');return}stops.push([parts[0].trim(),parts[1].trim(),parts.slice(2).join('｜').trim(),'yellow'])}
+ for(const line of lines){const parts=line.split('｜');if(parts.length<3){alert('每一行請用「時間｜地點｜備註」格式');return}stops.push({time:parts[0].trim(),place:parts[1].trim(),note:parts.slice(2).join('｜').trim(),color:'yellow',tag:''})}
  if(!stops.length){alert('至少保留一個行程項目');return}
  const days=currentDays().map((d,i)=>i===activeDay?{...d,stops}:d);await updateDoc(doc(db,'shared','trip'),{days});alert('行程已同步給旅伴！');
 });

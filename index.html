@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
- <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFCF6">
-<title>沖繩小旅行｜2027.06.07—06.10</title>
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>沖繩小旅行｜日期待定</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 :root{
@@ -52,6 +52,8 @@ h2{font-size:25px;margin:0}
 .day-edit-row label{display:block;font-size:13px;font-weight:bold;margin:7px 0}
 .day-edit-row input,.day-edit-row textarea{display:block;width:100%;min-width:0;border:2px solid var(--ink);border-radius:11px;padding:9px;background:#fff;font:inherit;margin-top:4px}
 .day-edit-row textarea{min-height:58px;resize:vertical}
+.day-editor-text{width:100%;min-height:230px;border:2px solid var(--ink);border-radius:14px;padding:12px;background:#fff;font:inherit;line-height:1.9;white-space:pre-wrap}
+#dayPanel{touch-action:pan-y}
 .stop .resource-line,.stop .restaurant-line{margin:3px 0;font-size:14px}
 .flightform input{display:block;width:100%;min-width:0;border:2px solid var(--ink);border-radius:11px;padding:9px;background:#fff;margin-top:4px}
 @media(max-width:420px){.flightform{grid-template-columns:1fr 1fr}}
@@ -117,9 +119,9 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
   <div>
    <span class="kicker">OUR LITTLE OKINAWA TRIP ✈</span>
    <h1>沖繩，<br>一起慢慢玩。</h1>
-   <p class="sub">2027.06.07 — 06.10｜四天三夜｜8人小旅行</p>
+   <p class="sub">日期待定｜四天三夜｜8人小旅行</p>
    <div class="countgrid">
-    <div class="count"><b id="days">—</b><small>距離出發日</small></div>
+    <div class="count"><b id="days">—</b><small>距離出發日（日期待定）</small></div>
     <div class="count"><b>4</b><small>旅行天數</small></div>
     <div class="count"><b>8</b><small>一起出發的人</small></div>
    </div>
@@ -158,8 +160,8 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
 <section id="flight">
  <div class="sectionhead"><h2>✈ 航班小卡</h2><span class="note">時間為目前規劃</span></div>
  <div class="flightgrid">
-  <div class="flight go"><span class="label">去程｜6/7（一）</span><strong id="flightGoTime">07:00</strong><span class="airport" id="flightGoRoute">台灣 → 沖繩</span><p class="smallprint" id="flightGoInfo">航空公司／航班編號：待確認</p><p class="smallprint" id="flightGoExtra">航廈／行李：待確認</p></div>
-  <div class="flight back"><span class="label">回程｜6/10（四）</span><strong id="flightBackTime">19:00</strong><span class="airport" id="flightBackRoute">沖繩 → 台灣</span><p class="smallprint" id="flightBackInfo">航空公司／航班編號：待確認</p><p class="smallprint" id="flightBackExtra">航廈／行李：待確認</p></div>
+  <div class="flight go"><span class="label">去程｜日期待定</span><strong id="flightGoTime">07:00</strong><span class="airport" id="flightGoRoute">台灣 → 沖繩</span><p class="smallprint" id="flightGoInfo">航空公司／航班編號：待確認</p><p class="smallprint" id="flightGoExtra">航廈／行李：待確認</p></div>
+  <div class="flight back"><span class="label">回程｜日期待定</span><strong id="flightBackTime">19:00</strong><span class="airport" id="flightBackRoute">沖繩 → 台灣</span><p class="smallprint" id="flightBackInfo">航空公司／航班編號：待確認</p><p class="smallprint" id="flightBackExtra">航廈／行李：待確認</p></div>
  </div>
  <div class="tip">✎ 航班時間會與每日行程的第一天出發、最後一天回程時間連動；完整資料可在下方共同編輯區填寫。</div>
 </section>
@@ -167,19 +169,19 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
 <section id="itinerary">
  <div class="sectionhead"><h2>🗓 每日行程</h2><span class="note">點日期切換</span></div>
  <div class="tabs" id="dayTabs">
-  <button class="tab active" data-day="0">D1 · 6/7</button><button class="tab" data-day="1">D2 · 6/8</button><button class="tab" data-day="2">D3 · 6/9</button><button class="tab" data-day="3">D4 · 6/10</button>
+  <button class="tab active" data-day="0">第 1 天</button><button class="tab" data-day="1">第 2 天</button><button class="tab" data-day="2">第 3 天</button><button class="tab" data-day="3">第 4 天</button>
  </div>
  <div class="card" id="dayPanel" aria-live="polite"></div>
  <div class="card" id="dayEditor" hidden>
   <h3 style="margin-top:0">✏️ 編輯這一天的行程</h3>
-  <p class="smallprint">以下是固定行程大綱，順序、時段及階段名稱不能更動。只需填寫每個階段後面的地點／景點、餐廳及備註；沒有餐廳可留白。</p>
+  <p class="smallprint">直接在文字框輸入行程即可。每一天的固定階段名稱與順序已先排好，請在冒號後補上內容；日期尚未決定，之後再填。</p>
   <div id="dayEditorRows"></div>
   <button class="btn" id="saveDay" style="margin-top:8px">儲存並同步行程</button>
  </div>
  <div class="card" id="flightEditor" hidden>
   <h3 style="margin-top:0">✈ 編輯航班資料</h3>
   <p class="smallprint">填寫後按儲存，航班小卡會更新並同步給所有旅伴。航班時間也會同步到第一天／最後一天的行程時間。</p>
-  <h4>🛫 去程｜6/7</h4>
+  <h4>🛫 去程｜日期待定</h4>
   <div class="flightform">
    <label>起飛時間<input id="flightGoTimeInput" type="time" value="07:00"></label>
    <label>航空公司<input id="flightGoAirline" type="text" placeholder="例：長榮航空"></label>
@@ -189,7 +191,7 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
    <label>航廈<input id="flightGoTerminal" type="text" placeholder="待確認"></label>
    <label>行李額度<input id="flightGoBaggage" type="text" placeholder="例：托運 23kg"></label>
   </div>
-  <h4>🛬 回程｜6/10</h4>
+  <h4>🛬 回程｜日期待定</h4>
   <div class="flightform">
    <label>起飛時間<input id="flightBackTimeInput" type="time" value="19:00"></label>
    <label>航空公司<input id="flightBackAirline" type="text" placeholder="例：長榮航空"></label>
@@ -252,7 +254,7 @@ footer{text-align:center;padding:30px 12px 45px;color:var(--muted);font-size:13p
 <section id="stay">
  <div class="sectionhead"><h2>🏡 住宿與租車</h2><span class="note">確認後填入</span></div>
  <div class="card">
-  <p><b>住宿名稱：</b>尚未決定</p><p><b>住宿地址：</b>待確認</p><p><b>入住／退房：</b>6/7 入住・6/10 退房</p>
+  <p><b>住宿名稱：</b>尚未決定</p><p><b>住宿地址：</b>待確認</p><p><b>入住／退房：</b>日期待定</p>
   <hr style="border:0;border-top:1px dashed #bdb5aa">
   <p><b>租車公司／取車時間：</b>待確認</p><p><b>車型／車輛數：</b>待確認（8 人請先確認行李容量與乘坐配置）</p>
   <p class="smallprint">住宿與租車資訊確定後，建議將地址、電話、訂單編號與取還車地點補齊。</p>
@@ -281,10 +283,10 @@ const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 
 const originalDays = [
- {date:"6 月 7 日・星期一",title:"抵達沖繩，慢慢開啟假期",tag:"抵達日",stops:[["07:00","台灣出發","搭機前往沖繩。航班與機場資訊待補。","pink"],["上午","抵達那霸・入境領行李","預留入境、領行李與集合時間。","blue"],["中午","租車、午餐、超市採買","8 人同行請先確認車輛與行李空間；採買飲水、早餐及孩子用品。","green"],["下午","首里城公園（彈性安排）","視抵達時間與大家精神狀況決定，不必硬塞景點。","yellow"],["傍晚","入住包棟・晚餐休息","先讓孩子熟悉環境，整理隔天要帶的物品。","pink"]],tip:"第一天不要排太滿。若航班延誤或租車手續較久，首里城可直接取消。"},
- {date:"6 月 8 日・星期二",title:"北部海洋日：鯨鯊與古宇利島",tag:"北部一日遊",stops:[["08:00","民宿早餐、出發","建議早點出發，車程依住宿地點而定。","green"],["上午","美麗海水族館","必去！建議預留約 2～3 小時，含大型水槽、展區與休息。","blue","必去"],["中午","本部町午餐","找適合多人入座的餐廳，先確認是否接受 8 人訂位。","yellow"],["下午","古宇利島・古宇利大橋","看海、拍照、吃點心；依天氣及孩子狀態彈性停留。","blue"],["傍晚","返回住宿・晚餐","北部回程較長，預留休息與塞車時間。","pink"]],tip:"美麗海水族館與古宇利島是同一個北部方向，適合排同一天。若下雨，可延長水族館時間。"},
- {date:"6 月 9 日・星期三",title:"中部慢遊：美國村與海邊",tag:"中部一日遊",stops:[["上午","睡飽、民宿早餐","可以安排慢一點，讓忻翰午睡作息比較穩定。","green"],["中午","美國村・午餐","逛街、吃飯、拍照，適合多人分組自由活動。","yellow"],["下午","北谷海邊散步","看海、喝飲料，遇雨可改逛室內商場。","blue"],["傍晚","晚餐・回民宿","可安排一頓大家一起吃的沖繩料理。","pink"]],tip:"這天保留彈性，不必塞滿景點。若住宿就在中北部，可依實際位置調整順序。"},
- {date:"6 月 10 日・星期四",title:"最後採買，帶著回憶回家",tag:"回程日",stops:[["上午","早餐、整理行李、退房","檢查護照、手機、充電器與孩子用品。","green"],["中午","瀨長島 Umikaji Terrace（備選）","靠近那霸機場，適合吃午餐、看海；注意天氣與停車。","blue"],["下午","國際通／機場周邊採買","依還車時間調整，不建議安排太遠的景點。","yellow"],["約 16:00","還車、前往機場","請依租車公司規定與航班報到時間提早還車。","pink"],["19:00","沖繩起飛・返回台灣","旅程結束！","blue"]],tip:"回程 19:00 不代表可以玩到最後一刻。還車、接駁、托運與安檢都要留緩衝。"}
+ {date:"日期待定",title:"抵達沖繩，慢慢開啟假期",tag:"抵達日",stops:[["07:00","台灣出發","搭機前往沖繩。航班與機場資訊待補。","pink"],["上午","抵達那霸・入境領行李","預留入境、領行李與集合時間。","blue"],["中午","租車、午餐、超市採買","8 人同行請先確認車輛與行李空間；採買飲水、早餐及孩子用品。","green"],["下午","首里城公園（彈性安排）","視抵達時間與大家精神狀況決定，不必硬塞景點。","yellow"],["傍晚","入住包棟・晚餐休息","先讓孩子熟悉環境，整理隔天要帶的物品。","pink"]],tip:"第一天不要排太滿。若航班延誤或租車手續較久，首里城可直接取消。"},
+ {date:"日期待定",title:"北部海洋日：鯨鯊與古宇利島",tag:"北部一日遊",stops:[["08:00","民宿早餐、出發","建議早點出發，車程依住宿地點而定。","green"],["上午","美麗海水族館","必去！建議預留約 2～3 小時，含大型水槽、展區與休息。","blue","必去"],["中午","本部町午餐","找適合多人入座的餐廳，先確認是否接受 8 人訂位。","yellow"],["下午","古宇利島・古宇利大橋","看海、拍照、吃點心；依天氣及孩子狀態彈性停留。","blue"],["傍晚","返回住宿・晚餐","北部回程較長，預留休息與塞車時間。","pink"]],tip:"美麗海水族館與古宇利島是同一個北部方向，適合排同一天。若下雨，可延長水族館時間。"},
+ {date:"日期待定",title:"中部慢遊：美國村與海邊",tag:"中部一日遊",stops:[["上午","睡飽、民宿早餐","可以安排慢一點，讓忻翰午睡作息比較穩定。","green"],["中午","美國村・午餐","逛街、吃飯、拍照，適合多人分組自由活動。","yellow"],["下午","北谷海邊散步","看海、喝飲料，遇雨可改逛室內商場。","blue"],["傍晚","晚餐・回民宿","可安排一頓大家一起吃的沖繩料理。","pink"]],tip:"這天保留彈性，不必塞滿景點。若住宿就在中北部，可依實際位置調整順序。"},
+ {date:"日期待定",title:"最後採買，帶著回憶回家",tag:"回程日",stops:[["上午","早餐、整理行李、退房","檢查護照、手機、充電器與孩子用品。","green"],["中午","瀨長島 Umikaji Terrace（備選）","靠近那霸機場，適合吃午餐、看海；注意天氣與停車。","blue"],["下午","國際通／機場周邊採買","依還車時間調整，不建議安排太遠的景點。","yellow"],["約 16:00","還車、前往機場","請依租車公司規定與航班報到時間提早還車。","pink"],["19:00","沖繩起飛・返回台灣","旅程結束！","blue"]],tip:"回程 19:00 不代表可以玩到最後一刻。還車、接駁、托運與安檢都要留緩衝。"}
 ];
 const fixedOutlines=[
  ["去程搭機","抵達與入境","租車、午餐與採買","下午景點","入住與晚餐"],
@@ -319,22 +321,44 @@ function renderDay(i){
  const outline=fixedOutlines[i]||[];
  const stops=d.stops||[];
  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',+b.dataset.day===i));
- document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>${safeText(d.date)}</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${stops.map((s,j)=>{const resource=stopField(s,'resource',undefined)||stopField(s,'place',1)||'';const restaurant=stopField(s,'restaurant',undefined)||'';const note=stopField(s,'note',2)||'';const time=stopField(s,'time',0)||'';return `<div class="stop"><time>${safeText(time)}</time><h3>${safeText(outline[j]||'行程階段')}</h3>${resource?`<p class="resource-line">📍 ${safeText(resource)}</p><a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(resource)}">景點地圖 ↗</a>`:''}${restaurant?`<p class="restaurant-line">🍽️ 餐廳：${safeText(restaurant)}</p><a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(restaurant)}">餐廳地圖 ↗</a>`:''}${note?`<p>${safeText(note)}</p>`:''}</div>`}).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
+ document.getElementById('dayPanel').innerHTML=`<div class="daytitle"><strong>第 ${i+1} 天｜日期待定</strong><span class="pill yellow">${safeText(d.tag||'行程')}</span></div><h3 style="margin:0 0 14px">${safeText(d.title)}</h3><div class="timeline">${stops.map((s,j)=>{const resource=stopField(s,'resource',undefined)||stopField(s,'place',1)||'';const restaurant=stopField(s,'restaurant',undefined)||'';const note=stopField(s,'note',2)||'';const time=stopField(s,'time',0)||'';return `<div class="stop"><time>${safeText(time)}</time><h3>${safeText(outline[j]||'行程階段')}</h3>${resource?`<p class="resource-line">📍 ${safeText(resource)}</p><a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(resource)}">景點地圖 ↗</a>`:''}${restaurant?`<p class="restaurant-line">🍽️ 餐廳：${safeText(restaurant)}</p><a class="maplink" target="_blank" rel="noopener" href="${mapsUrl(restaurant)}">餐廳地圖 ↗</a>`:''}${note?`<p>${safeText(note)}</p>`:''}</div>`}).join('')}</div><div class="tip">💡 ${safeText(d.tip||'')}</div>`;
  const canEdit=isMember;
  dayEditor.hidden=!canEdit;
  if(canEdit){
-  const rows=document.getElementById('dayEditorRows');rows.innerHTML='';
-  outline.forEach((label,j)=>{
-   const stop=stops[j]||{};const time=stopField(stop,'time',0)||'';const resource=stopField(stop,'resource',undefined)||stopField(stop,'place',1)||'';const restaurant=stopField(stop,'restaurant',undefined)||'';const note=stopField(stop,'note',2)||'';
-   const card=document.createElement('div');card.className='day-edit-row';
-   const heading=document.createElement('div');heading.className='fixed-outline';heading.textContent=`${j+1}. ${time}｜${label}（固定）`;
-   const makeField=(caption,id,value,placeholder,multiline=false)=>{const lab=document.createElement('label');lab.textContent=caption;const input=multiline?document.createElement('textarea'):document.createElement('input');if(!multiline)input.type='text';input.id=id;input.value=value;input.placeholder=placeholder;lab.append(input);return lab};
-   card.append(heading,makeField('地點／景點資源','dayResource'+j,resource,'例：美麗海水族館、古宇利島'),makeField('餐廳名稱','dayRestaurant'+j,restaurant,'例：餐廳名稱／訂位資訊（可留白）'),makeField('備註','dayNote'+j,note,'例：地址、預約時間、注意事項',true));rows.append(card);
+  const rows=document.getElementById('dayEditorRows');
+  const textLines=outline.map((label,j)=>{
+   const stop=stops[j]||{};
+   const resource=stopField(stop,'resource',undefined)||stopField(stop,'place',1)||'';
+   const restaurant=stopField(stop,'restaurant',undefined)||'';
+   const note=stopField(stop,'note',2)||'';
+   const details=[resource,restaurant?`餐廳：${restaurant}`:'',note?`備註：${note}`:''].filter(Boolean).join('；');
+   return `${label}：${details}`;
   });
+  rows.innerHTML='';
+  const editor=document.createElement('textarea');
+  editor.id='dayItineraryText';
+  editor.className='day-editor-text';
+  editor.value=textLines.join('\n');
+  editor.placeholder=outline.map(label=>`${label}：`).join('\n');
+  rows.append(editor);
  }
 }
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>renderDay(+b.dataset.day)));
-const dep=new Date('2027-06-07T00:00:00');const today=new Date();today.setHours(0,0,0,0);document.getElementById('days').textContent=Math.max(0,Math.ceil((dep-today)/86400000));
+// 手機可在行程卡片左右滑動切換天數
+let touchStartX=0,touchStartY=0;
+const dayPanel=document.getElementById('dayPanel');
+dayPanel.addEventListener('touchstart',e=>{if(e.touches.length===1){touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY}},{passive:true});
+dayPanel.addEventListener('touchend',e=>{
+ if(!touchStartX)return;
+ const dx=e.changedTouches[0].clientX-touchStartX;
+ const dy=e.changedTouches[0].clientY-touchStartY;
+ if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.25){
+  const next=Math.max(0,Math.min(3,activeDay+(dx<0?1:-1)));
+  if(next!==activeDay)renderDay(next);
+ }
+ touchStartX=0;touchStartY=0;
+},{passive:true});
+document.getElementById('days').textContent='—';
 
 function defaultShared(){
  const days={};
@@ -388,17 +412,24 @@ function renderAll(){renderDay(activeDay);renderFlights();drawAllChecks();drawEx
 document.getElementById('saveDay').addEventListener('click',async()=>{
  if(!isMember)return;
  const current=currentDays();const d=current[activeDay]||originalDays[activeDay];const baseStops=d.stops||[];
- const stops=(fixedOutlines[activeDay]||[]).map((outline,j)=>{
+ const outline=fixedOutlines[activeDay]||[];
+ const raw=document.getElementById('dayItineraryText')?.value||'';
+ const lines=raw.split(/\r?\n/);
+ const stops=outline.map((label,j)=>{
+  const prefix=label+'：';
+  const line=lines.find(x=>x.startsWith(prefix));
+  const content=line?line.slice(prefix.length).trim():'';
+  const parts=content.split('；');
+  const resource=(parts.shift()||'').trim();
+  const restaurantPart=parts.find(x=>x.startsWith('餐廳：'))||'';
+  const notePart=parts.find(x=>x.startsWith('備註：'))||'';
+  const restaurant=restaurantPart.replace(/^餐廳：/,'').trim();
+  const note=notePart.replace(/^備註：/,'').trim();
   const old=baseStops[j]||originalDays[activeDay].stops[j]||[];
-  const get=(id)=>document.getElementById(id)?.value.trim()||'';
-  const time=stopField(old,'time',0)||'';
-  return {time,outline,resource:get('dayResource'+j),place:get('dayResource'+j),restaurant:get('dayRestaurant'+j),note:get('dayNote'+j),color:stopField(old,'color',3)||'yellow',tag:stopField(old,'tag',4)||''};
+  return {time:stopField(old,'time',0)||'',outline:label,resource,place:resource,restaurant,note,color:stopField(old,'color',3)||'yellow',tag:stopField(old,'tag',4)||''};
  });
  const days={};current.forEach((day,i)=>{days[String(i)]=i===activeDay?{...day,stops}:day});
- const flight=flightData();
- if(activeDay===0 && stops.length)flight.go.time=stops[0].time;
- if(activeDay===3 && stops.length)flight.back.time=stops[stops.length-1].time;
- await persistShared({days,flight});alert('固定大綱下的地點、餐廳與備註已同步給所有旅伴！');
+ await persistShared({days});alert('行程文字已儲存並同步給所有旅伴！');
 });
 document.getElementById('saveFlights').addEventListener('click',async()=>{
  if(!isMember)return;

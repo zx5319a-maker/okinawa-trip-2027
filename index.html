@@ -516,8 +516,8 @@ main.wrap>.mockpage#page-home{padding-top:0!important}
  </section>
  <section id="page-itinerary" class="mockpage">
   <div class="sectionhead"><h2>🗓 每日行程</h2><span class="note">四天三夜</span></div>
-  <div class="tabs"><button class="tab active" data-day="1">第 1 天</button><button class="tab" data-day="2">第 2 天</button><button class="tab" data-day="3">第 3 天</button><button class="tab" data-day="4">第 4 天</button></div>
-  <p class="itin-intro">先看時間軸掌握整天動線，點「查看詳細」展開景點完整資訊。以下地點與時間僅為版面示意，並非已確認行程。</p>
+  <div class="tabs"><button class="tab active" data-day="1">DAY 1</button><button class="tab" data-day="2">DAY 2</button><button class="tab" data-day="3">DAY 3</button><button class="tab" data-day="4">DAY 4</button></div>
+  <p class="itin-intro">切換日期，只看當天要去的景點、餐廳與住宿。以下皆為示範資料，並非已確認行程。</p>
   <div class="card" id="mockDay">
    <div class="day-summary"><div class="daytitle"><strong>第 1 天｜日期待定</strong></div><span class="date-tag">抵達・南部慢遊</span></div>
    <div class="timeline-card">
@@ -681,7 +681,7 @@ renderAllChecklists();
 
 
 // ===== 可操作預覽版：編輯後即時更新本機預覽資料 =====
-const previewStoreKey = 'okinawa_preview_editable_v1';
+const previewStoreKey = 'okinawa_preview_editable_v2';
 const previewData = {
   stay: {
     outbound: {date:'日期待定', depart:'07:00', arrive:'待確認', flight:'待確認', fromTerminal:'待確認', toTerminal:'待確認'},
@@ -690,10 +690,13 @@ const previewData = {
     car:{company:'待確認',pickup:'待確認',dropoff:'待確認',vehicle:'待確認',note:''}
   },
   days: [
-    [{time:'07:00',name:'台灣出發 ✈',note:'搭機前往沖繩'},{time:'10:00',name:'那霸機場・取車',note:'領行李、辦理租車手續'},{time:'12:00',name:'瀨長島 Umikaji Terrace',note:'海景散步・午餐'},{time:'15:00',name:'飯店入住・休息',note:'放行李、調整體力'}],
-    [],[],[]
+    [{type:'景點',name:'瀨長島 Umikaji Terrace',note:'海景散步、欣賞飛機起降'},{type:'餐廳',name:'幸福鬆餅（瀨長島店）',note:'海景午餐／甜點'},{type:'景點',name:'波上宮',note:'海邊神社散步、拍照'},{type:'住宿',name:'那霸市區飯店（示範）',note:'入住休息'}],
+    [{type:'景點',name:'沖繩美麗海水族館',note:'看鯨鯊與海洋生物'},{type:'景點',name:'備瀨福木林道',note:'林蔭步道散步'},{type:'餐廳',name:'岸本食堂（示範）',note:'沖繩麵午餐'},{type:'住宿',name:'名護／本部住宿（示範）',note:'入住休息'}],
+    [{type:'景點',name:'古宇利島',note:'跨海大橋與海景'},{type:'餐廳',name:'古宇利島海景咖啡廳（示範）',note:'午餐、看海'},{type:'景點',name:'美國村',note:'逛街、海濱散步'},{type:'住宿',name:'北谷住宿（示範）',note:'入住休息'}],
+    [{type:'景點',name:'首里城公園',note:'認識琉球歷史文化'},{type:'餐廳',name:'首里周邊沖繩料理（示範）',note:'午餐'},{type:'景點',name:'國際通',note:'採買伴手禮、自由逛街'},{type:'住宿',name:'返程日／無住宿',note:'前往那霸機場'}]
   ],
   expenses: [],
+  exchangeRate: 0.22,
   todo: checklistData.todo.map((name,i)=>({name,done:false})),
   adult: checklistData.adult.map((name,i)=>({name,done:false})),
   baby: checklistData.baby.map((name,i)=>({name,done:false}))
@@ -701,6 +704,8 @@ const previewData = {
 try {
  const saved=JSON.parse(localStorage.getItem(previewStoreKey)||'null');
  if(saved) Object.assign(previewData,saved);
+ if(!Number.isFinite(Number(previewData.exchangeRate)) || Number(previewData.exchangeRate)<=0) previewData.exchangeRate=0.22;
+ if(!Array.isArray(previewData.expenses)) previewData.expenses=[];
 } catch(e){}
 function persistPreview(){localStorage.setItem(previewStoreKey,JSON.stringify(previewData));updateHomeSummary();}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -740,36 +745,45 @@ window.saveStayInfo=(key,btn)=>{btn.closest('.edit-panel').querySelectorAll('[da
 function renderDayEditor(day){
  const host=document.getElementById('mockDay');
  const items=previewData.days[day-1]||[];
- host.querySelector('.timeline-card').innerHTML=items.length?items.map((x,i)=>`<div class="timeline-row"><div class="timeline-time">${esc(x.time)}</div><div class="timeline-dot"></div><div class="timeline-place"><b>${esc(x.name)}</b><small>${esc(x.note)}</small><button class="detail-toggle" type="button" onclick="editDayItem(${day},${i})">編輯／刪除</button></div></div>`).join(''):'<div class="placeholder">這一天還沒有行程，從下方新增第一個景點吧！</div>';
- host.querySelector('.day-edit-hint').textContent='可新增、修改或刪除景點；儲存後首頁會顯示當日簡單行程。';
+ const title=host.querySelector('.daytitle strong');
+ if(title)title.textContent=`第 ${day} 天｜日期待定`;
+ const tag=host.querySelector('.date-tag');
+ if(tag)tag.textContent=['抵達・南部慢遊','水族館・北部散策','古宇利島・美國村','那霸市區・返程'][day-1]||'當日行程';
+ host.querySelector('.timeline-card').innerHTML=items.length?items.map((x,i)=>`<div class="timeline-row"><div class="timeline-time">${esc(x.type||'行程')}</div><div class="timeline-dot"></div><div class="timeline-place"><b>${esc(x.name)}</b>${x.note?`<small>${esc(x.note)}</small>`:''}<br><button class="detail-toggle" type="button" onclick="editDayItem(${day},${i})">編輯／刪除</button></div></div>`).join(''):'<div class="placeholder">這一天還沒有行程，從下方新增第一個項目吧！</div>';
+ host.querySelector('.day-edit-hint').textContent='每天只顯示當日景點、餐廳與住宿，可自行新增、修改或刪除。';
  const panel=host.querySelector('.day-editor-panel')||document.createElement('div');
  panel.className='edit-panel day-editor-panel';
- panel.innerHTML=`<h3>✎ 第 ${day} 天行程編輯</h3><div class="edit-grid">
- ${field('時間','time','','time')}${field('景點／活動','name','','text',true)}
- <label class="wide">簡單說明<textarea data-field="note" placeholder="例如：午餐、交通方式、注意事項"></textarea></label>
- </div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addDayItem(${day},this)">＋ 新增行程</button></div>
- <div class="edit-note">預覽版可先測試新增與修改；正式共用同步會再接 Firebase。</div>`;
+ panel.innerHTML=`<h3>✎ 編輯第 ${day} 天</h3><div class="edit-grid">
+ <label>項目類型<select data-field="type"><option>景點</option><option>餐廳</option><option>住宿</option></select></label>
+ ${field('名稱','name','','text',true)}
+ <label class="wide">簡單說明<textarea data-field="note" placeholder="可填寫簡短備註"></textarea></label>
+ </div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addDayItem(${day},this)">＋ 新增項目</button></div>
+ <div class="edit-note">以上景點、餐廳與住宿皆為示範資料，尚未確認或預訂。</div>`;
  if(!panel.parentNode) host.append(panel);
 }
-window.addDayItem=(day,btn)=>{const p=btn.closest('.edit-panel'),v={};p.querySelectorAll('[data-field]').forEach(el=>v[el.dataset.field]=el.value);if(!v.name){alert('請先填寫景點／活動');return;}previewData.days[day-1].push({time:v.time||'待安排',name:v.name,note:v.note||''});persistPreview();renderDayEditor(day);};
-window.editDayItem=(day,index)=>{const x=previewData.days[day-1][index];const name=prompt('修改景點／活動名稱',x.name);if(name===null)return;if(!name.trim()){if(confirm('要刪除這個行程嗎？'))previewData.days[day-1].splice(index,1);}else{x.name=name;x.time=prompt('修改時間',x.time)||x.time;x.note=prompt('修改簡單說明',x.note)||x.note;}persistPreview();renderDayEditor(day);};
+window.addDayItem=(day,btn)=>{const p=btn.closest('.edit-panel'),v={};p.querySelectorAll('[data-field]').forEach(el=>v[el.dataset.field]=el.value);if(!v.name){alert('請先填寫名稱');return;}previewData.days[day-1].push({type:v.type||'景點',name:v.name,note:v.note||''});persistPreview();renderDayEditor(day);};
+window.editDayItem=(day,index)=>{const x=previewData.days[day-1][index];const name=prompt('修改名稱（留空可刪除）',x.name);if(name===null)return;if(!name.trim()){if(confirm('要刪除這個項目嗎？'))previewData.days[day-1].splice(index,1);}else{x.name=name;x.note=prompt('修改簡單說明',x.note||'')??x.note;}persistPreview();renderDayEditor(day);};
 function setupExpenseEditor(){
  const page=document.getElementById('page-expenses'),card=page.querySelector('.card');
- card.innerHTML=`<div class="statgrid"><div class="stat"><small>目前總支出</small><b id="expenseTotal">NT$0</b></div><div class="stat"><small>每位大人平均</small><b id="expenseAverage">NT$0</b></div><div class="stat"><small>分攤人數</small><b>6 位大人</b></div></div>
+ card.innerHTML=`<div class="statgrid"><div class="stat"><small>日幣總支出</small><b id="expenseTotalJPY">¥0</b></div><div class="stat"><small>台幣約合</small><b id="expenseTotalTWD">NT$0</b></div><div class="stat"><small>每位大人平均</small><b id="expenseAverage">¥0</b></div></div>
  <div class="edit-panel"><h3>✎ 新增旅費</h3><div class="edit-grid">
- ${field('支出項目','name','')}${field('金額（台幣）','amount','','number')}
+ ${field('支出項目','name','')}${field('金額（日幣 ¥）','jpyAmount','','number')}
  ${field('付款人','payer','')}${field('日期','date','','date')}
- </div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addExpense(this)">＋ 新增支出</button></div></div>
+ <label class="wide">日幣換算台幣匯率（1 日圓＝幾元台幣）<input type="number" step="0.001" min="0.001" data-field="exchangeRate" value="${Number(previewData.exchangeRate).toFixed(3)}"></label>
+ </div><div class="edit-note">匯率可依實際刷卡或換匯匯率自行調整；台幣金額為估算。</div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addExpense(this)">＋ 新增支出</button></div></div>
  <div class="edit-list" id="expenseRows"></div>`;
  renderExpenses();
 }
-window.addExpense=btn=>{const d={};btn.closest('.edit-panel').querySelectorAll('[data-field]').forEach(el=>d[el.dataset.field]=el.value);if(!d.name||Number(d.amount)<=0){alert('請填寫項目與有效金額');return;}previewData.expenses.push({...d,amount:Number(d.amount)});persistPreview();setupExpenseEditor();};
+window.addExpense=btn=>{const d={};btn.closest('.edit-panel').querySelectorAll('[data-field]').forEach(el=>d[el.dataset.field]=el.value);const rate=Number(d.exchangeRate)||0.22;if(!d.name||Number(d.jpyAmount)<=0||rate<=0){alert('請填寫項目、有效日幣金額與匯率');return;}previewData.exchangeRate=rate;previewData.expenses.push({name:d.name,jpyAmount:Number(d.jpyAmount),exchangeRate:rate,payer:d.payer||'',date:d.date||''});persistPreview();setupExpenseEditor();};
 window.deleteExpense=i=>{previewData.expenses.splice(i,1);persistPreview();setupExpenseEditor();};
 function renderExpenses(){
- const total=previewData.expenses.reduce((a,x)=>a+x.amount,0);
- document.getElementById('expenseTotal').textContent='NT$'+total.toLocaleString('zh-TW');
- document.getElementById('expenseAverage').textContent='NT$'+Math.round(total/6).toLocaleString('zh-TW');
- document.getElementById('expenseRows').innerHTML=previewData.expenses.length?previewData.expenses.map((x,i)=>`<div class="edit-row"><span><b>${esc(x.name)}</b>　NT$${x.amount.toLocaleString('zh-TW')}<br><small>${esc(x.payer||'未填付款人')}・${esc(x.date||'日期未填')}</small></span><button onclick="deleteExpense(${i})">🗑️</button></div>`).join(''):'<div class="placeholder">還沒有旅費紀錄，新增後會顯示在這裡。</div>';
+ const rate=Number(previewData.exchangeRate)||0.22;
+ const totalJPY=previewData.expenses.reduce((a,x)=>a+Number(x.jpyAmount??(Number(x.amount||0)/rate)),0);
+ const totalTWD=previewData.expenses.reduce((a,x)=>a+Number(x.jpyAmount??(Number(x.amount||0)/rate))*Number(x.exchangeRate||rate),0);
+ document.getElementById('expenseTotalJPY').textContent='¥'+Math.round(totalJPY).toLocaleString('ja-JP');
+ document.getElementById('expenseTotalTWD').textContent='NT$'+Math.round(totalTWD).toLocaleString('zh-TW');
+ document.getElementById('expenseAverage').textContent='¥'+Math.round(totalJPY/6).toLocaleString('ja-JP');
+ document.getElementById('expenseRows').innerHTML=previewData.expenses.length?previewData.expenses.map((x,i)=>{const jpy=Number(x.jpyAmount??(Number(x.amount||0)/rate));const twd=Math.round(jpy*Number(x.exchangeRate||rate));return `<div class="edit-row"><span><b>${esc(x.name)}</b><br><strong>¥${Math.round(jpy).toLocaleString('ja-JP')}</strong>　<small>約 NT$${twd.toLocaleString('zh-TW')}</small><br><small>${esc(x.payer||'未填付款人')}・${esc(x.date||'日期未填')}</small></span><button onclick="deleteExpense(${i})">🗑️</button></div>`}).join(''):'<div class="placeholder">還沒有旅費紀錄，新增後會顯示日幣與台幣金額。</div>';
 }
 function renderEditableChecks(key,listId,progressId,countId){
  const list=document.getElementById(listId);if(!list)return;
@@ -808,9 +822,8 @@ function updateHomeSummary(){
   flightCards[1].querySelector('.ticket-time').textContent=previewData.stay.inbound.depart;
   flightCards[1].querySelector('.ticket-foot').innerHTML=`<span>${esc(previewData.stay.inbound.date)}</span><span>${esc(previewData.stay.inbound.flight)}</span>`;
  }
- const dayText=previewData.days[0].map(x=>`${x.time} ${x.name}`).join('　・　');
  const today=document.querySelector('#page-home .home-today');
- if(today)today.textContent=dayText||'目前沒有今日行程（無）';
+ if(today)today.innerHTML='<b>DAY 1～DAY 4 已分開整理 ♡</b><br>請點選下方「行程」分頁，再切換日期查看當天的景點、餐廳與住宿。首頁不再把四天行程混成一段。';
 }
 function addEditorHeadings(){
  document.querySelectorAll('.mockpage:not(#page-home) .sectionhead').forEach(h=>{

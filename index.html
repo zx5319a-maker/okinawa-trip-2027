@@ -720,6 +720,8 @@ function field(label,key,value,type='text',wide=false){
 function editButton(text,fn){return `<button class="edit-btn" type="button" onclick="${fn}">${text}</button>`;}
 function setupStayEditor(){
  const page=document.getElementById('page-stay');
+ // 取得旅宿頁的三張卡片：航班、住宿、租車／交通
+ const cards=page.querySelectorAll(':scope > .card');
  const tickets=page.querySelectorAll('.stay-ticket');
  ['outbound','inbound'].forEach((key,i)=>{
   const d=previewData.stay[key], ticket=tickets[i];
@@ -837,7 +839,7 @@ function addCheckButtons(){
  });
 }
 function updateHomeSummary(){
- const total=previewData.expenses.reduce((a,x)=>a+x.amount,0);
+ const total=previewData.expenses.reduce((a,x)=>a+Number(x.amount||Number(x.jpyAmount||0)*Number(x.exchangeRate||previewData.exchangeRate||0.22)),0);
  const date=previewData.stay.outbound.date;
  const stats=document.querySelectorAll('#page-home .home-stat b');
  if(stats[0])stats[0].textContent=date||'日期待定';
@@ -851,7 +853,21 @@ function updateHomeSummary(){
   flightCards[1].querySelector('.ticket-foot').innerHTML=`<span>${esc(previewData.stay.inbound.date)}</span><span>${esc(previewData.stay.inbound.flight)}</span>`;
  }
  const today=document.querySelector('#page-home .home-today');
- if(today){today.innerHTML=previewData.days.map((items,i)=>`<div class="home-day-summary"><b>DAY ${i+1}</b><ol>${items.map(x=>`<li><span class="summary-type">${esc(x.type||'行程')}</span> ${esc(x.name)}${x.note?`<small>${esc(x.note)}</small>`:''}</li>`).join('')||'<li>尚未安排</li>'}</ol></div>`).join('');}
+ if(today){
+  // 出發日期未設定時固定顯示 DAY 1；設定後依沖繩當地日期切換當天行程
+  const tripDate=String(previewData.stay.outbound.date||'').trim();
+  const validTripDate=/^\\d{4}-\\d{2}-\\d{2}$/.test(tripDate) && !Number.isNaN(Date.parse(tripDate+'T00:00:00+09:00'));
+  let dayIndex=0;
+  if(validTripDate){
+   const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+   const nowDate=parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value+'-'+parts.find(p=>p.type==='day').value;
+   const start=Date.parse(tripDate+'T00:00:00+09:00');
+   const current=Date.parse(nowDate+'T00:00:00+09:00');
+   dayIndex=Math.max(0,Math.min(previewData.days.length-1,Math.floor((current-start)/86400000)));
+  }
+  const items=previewData.days[dayIndex]||[];
+  today.innerHTML=`<div class="home-day-summary"><b>DAY ${dayIndex+1}</b><ol>${items.map(x=>`<li><span class="summary-type">${esc(x.type||'行程')}</span> ${esc(x.name)}${x.note?`<small>${esc(x.note)}</small>`:''}</li>`).join('')||'<li>尚未安排</li>'}</ol></div>`;
+ }
 }
 function addEditorHeadings(){
  document.querySelectorAll('.mockpage:not(#page-home) .sectionhead').forEach(h=>{

@@ -377,8 +377,8 @@ main.wrap>.mockpage#page-home{padding-top:0!important}
 <body>
 <main class="wrap">
  <div class="top-clock">
-  <button class="collab-login" type="button" onclick="alert('目前是網站預覽版，共同編輯的 Google 登入功能尚未串接。')">
-   <span class="google-mark">G</span><span>共同編輯登入</span>
+  <button class="collab-login" id="collabLoginButton" type="button" onclick="toggleCloudLogin()">
+   <span class="google-mark">G</span><span id="collabLoginLabel">Google 共同編輯登入</span>
   </button>
   <button class="home-entry" type="button" aria-label="回到首頁" title="回到首頁" onclick="showHome()">✈</button>
   <span class="clock-label">🇯🇵 沖繩當地時間 <strong id="okinawaClock">--:--:--</strong></span>
@@ -563,6 +563,9 @@ main.wrap>.mockpage#page-home{padding-top:0!important}
  <button data-page="todo"><span class="navicon"><svg viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="17" rx="2.5"/><path d="M9 4.5v-1h6v1M8.5 10l1.5 1.5 3-3M8.5 16h7"/></svg></span><span>待辦</span></button>
  <button data-page="packing"><span class="navicon"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="14" rx="2.5"/><path d="M9 7V4.5h6V7M8 10v8M16 10v8M2.5 11v6M21.5 11v6"/></svg></span><span>行李</span></button>
 </nav>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 function tickClock(){document.getElementById('okinawaClock').textContent=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date())}
 tickClock();setInterval(tickClock,1000);
@@ -707,7 +710,120 @@ try {
  if(!Array.isArray(previewData.stay.lodgings))previewData.stay.lodgings=[];
  if(!previewData.stay.car)previewData.stay.car={company:'',pickup:'',dropoff:'',vehicle:'',note:''};
 } catch(e){}
-function persistPreview(){localStorage.setItem(previewStoreKey,JSON.stringify(previewData));updateHomeSummary();}
+function persistPreview(){
+ localStorage.setItem(previewStoreKey,JSON.stringify(previewData));
+ updateHomeSummary();
+ queueCloudSave();
+}
+
+// ===== Firebase 雲端共同編輯 =====
+const firebaseConfig = {
+ apiKey: "AIzaSyA87HXaV1lwTsJltNa5YYGXTv3oE7GSmTk",
+ authDomain: "okinawa-trip-2027-19994.firebaseapp.com",
+ projectId: "okinawa-trip-2027-19994",
+ storageBucket: "okinawa-trip-2027-19994.firebasestorage.app",
+ messagingSenderId: "604141948923",
+ appId: "1:604141948923:web:69a76856069cca1541455e"
+};
+let cloudAuth=null, cloudDb=null, cloudUser=null, cloudReady=false, applyingCloudData=false, cloudSaveTimer=null, cloudUnsubscribe=null;
+// 目前開放共同編輯的 Google 帳號；真正的資料安全仍由 Firestore Rules 強制執行
+const allowedCollaboratorEmails = [
+ 'zx5319a@gmail.com',
+ 'lu0420lu0523@gmail.com',
+ 'zxc102120@gmail.com'
+].map(email=>email.toLowerCase());
+const cloudTripRefPath='trips/okinawaTrip2027';
+function setCloudStatus(label){const el=document.getElementById('collabLoginLabel');if(el)el.textContent=label;}
+function renderAfterCloudLoad(){
+ try{
+  setupStayEditor();setupExpenseEditor();renderAllEditableChecks();renderAllEditableChecks();
+  const activeDay=Number(document.querySelector('#page-itinerary .tab.active')?.dataset.day||1);
+  renderDayEditor(activeDay);updateHomeSummary();refreshTripDateLabels();updateCountdown();
+ }catch(e){console.error('雲端資料畫面更新失敗',e);}
+}
+function cleanCloudPayload(){return JSON.parse(JSON.stringify(previewData));}
+async function writeCloudData(){
+ if(!cloudUser||!cloudDb||!cloudReady||applyingCloudData)return;
+ try{
+  await cloudDb.doc(cloudTripRefPath).set({data:cleanCloudPayload(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cloudUser.email||cloudUser.uid},{merge:true});
+  setCloudStatus('已同步・'+(cloudUser.displayName||cloudUser.email||'旅伴'));
+ }catch(e){
+  console.error('Firestore 儲存失敗',e);
+  setCloudStatus(e.code==='permission-denied'?'登入成功・尚未開放資料權限':'雲端同步失敗');
+ }
+}
+function queueCloudSave(){
+ if(!cloudUser||!cloudReady||applyingCloudData)return;
+ clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(writeCloudData,450);
+}
+function normalizeCloudPayload(data){
+ if(!data||typeof data!=='object')return;
+ applyingCloudData=true;
+ try{
+  Object.assign(previewData,data);
+  previewData.stay=previewData.stay||{};
+  previewData.stay.outbound=previewData.stay.outbound||{};
+  previewData.stay.inbound=previewData.stay.inbound||{};
+  previewData.stay.lodgings=Array.isArray(previewData.stay.lodgings)?previewData.stay.lodgings:[];
+  previewData.stay.buses=Array.isArray(previewData.stay.buses)?previewData.stay.buses:[];
+  previewData.days=Array.isArray(previewData.days)?previewData.days:[[],[],[],[]];
+  while(previewData.days.length<4)previewData.days.push([]);
+  previewData.expenses=Array.isArray(previewData.expenses)?previewData.expenses:[];
+  ['todo','adult','baby'].forEach(k=>{if(!Array.isArray(previewData[k]))previewData[k]=[];});
+  localStorage.setItem(previewStoreKey,JSON.stringify(previewData));
+ }finally{applyingCloudData=false;}
+ renderAfterCloudLoad();
+}
+function startCloudListener(user){
+ if(cloudUnsubscribe)cloudUnsubscribe();
+ cloudUser=user;cloudReady=false;
+ setCloudStatus('連線中…');
+ const ref=cloudDb.doc(cloudTripRefPath);
+ let firstSnapshot=true;
+ cloudUnsubscribe=ref.onSnapshot(snapshot=>{
+  if(snapshot.exists&&snapshot.data()?.data){
+   normalizeCloudPayload(snapshot.data().data);
+   setCloudStatus('已同步・'+(user.displayName||user.email||'旅伴'));
+  }else if(firstSnapshot){
+   cloudReady=true;
+   writeCloudData();
+  }
+  firstSnapshot=false;
+  cloudReady=true;
+ },err=>{
+  console.error('Firestore 讀取失敗',err);
+  cloudReady=false;
+  setCloudStatus(err.code==='permission-denied'?'登入成功・尚未開放資料權限':'雲端讀取失敗');
+ });
+}
+async function toggleCloudLogin(){
+ if(!cloudAuth){alert('Firebase 尚未初始化，請確認網路連線後重新整理。');return;}
+ if(cloudUser){
+  if(confirm('要登出共同編輯帳號嗎？')){try{await cloudAuth.signOut();}catch(e){alert('登出失敗：'+e.message)}}
+  return;
+ }
+ try{await cloudAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());}
+ catch(e){console.error(e);alert('Google 登入失敗：'+e.message);}
+}
+try{
+ if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+ cloudAuth=firebase.auth();cloudDb=firebase.firestore();
+ cloudAuth.onAuthStateChanged(async user=>{
+  if(user){
+   const email=String(user.email||'').toLowerCase();
+   if(!allowedCollaboratorEmails.includes(email)){
+    cloudUser=null;cloudReady=false;
+    if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null;}
+    setCloudStatus('此 Google 帳號尚未加入旅伴名單');
+    alert('這個 Google 帳號尚未加入沖繩旅伴名單，請改用已授權的帳號登入。');
+    try{await cloudAuth.signOut();}catch(e){console.error('未授權帳號登出失敗',e);}
+    return;
+   }
+   startCloudListener(user);
+  }else{cloudUser=null;cloudReady=false;if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null;}setCloudStatus('Google 共同編輯登入');}
+ });
+}catch(e){console.error('Firebase 初始化失敗',e);setCloudStatus('雲端尚未連線');}
+
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function field(label,key,value,type='text',wide=false){
  return `<label class="${wide?'wide':''}">${label}<input type="${type}" data-field="${key}" value="${esc(value)}"></label>`;
@@ -896,5 +1012,5 @@ setupStayEditor();setupExpenseEditor();renderAllEditableChecks();addCheckButtons
 
 
 </script>
-<div style="text-align:center;font-size:11px;color:#8a8178;padding:4px 12px 12px">互動功能｜資料儲存在此瀏覽器；旅伴跨裝置共同編輯需完成雲端資料庫串接</div>
+<div style="text-align:center;font-size:11px;color:#8a8178;padding:4px 12px 12px">共同編輯｜登入 Google 後連接 Firebase 雲端資料；未登入時仍保留本機資料</div>
 </body></html>

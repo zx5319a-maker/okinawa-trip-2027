@@ -745,7 +745,8 @@ function cleanCloudPayload(){return JSON.parse(JSON.stringify(previewData));}
 async function writeCloudData(){
  if(!cloudUser||!cloudDb||!cloudReady||applyingCloudData)return;
  try{
-  await cloudDb.doc(cloudTripRefPath).set({data:cleanCloudPayload(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cloudUser.email||cloudUser.uid},{merge:true});
+  // Firestore 不支援陣列中再包含陣列；將完整行程資料序列化成 JSON 字串儲存，讀取時再還原。
+  await cloudDb.doc(cloudTripRefPath).set({dataJson:JSON.stringify(cleanCloudPayload()),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cloudUser.email||cloudUser.uid},{merge:true});
   setCloudStatus('登入成功・雲端已同步');
  }catch(e){
   console.error('Firestore 儲存失敗',e);
@@ -783,8 +784,13 @@ function startCloudListener(user){
  const ref=cloudDb.doc(cloudTripRefPath);
  let firstSnapshot=true;
  cloudUnsubscribe=ref.onSnapshot(snapshot=>{
-  if(snapshot.exists&&snapshot.data()?.data){
-   normalizeCloudPayload(snapshot.data().data);
+  const cloudDoc=snapshot.exists?snapshot.data():null;
+  if(cloudDoc?.dataJson){
+   try{normalizeCloudPayload(JSON.parse(cloudDoc.dataJson));setCloudStatus('登入成功・雲端已同步');}
+   catch(parseError){console.error('Firestore 行程資料解析失敗',parseError);setCloudStatus('登入成功・雲端資料格式錯誤');}
+  }else if(cloudDoc?.data){
+   // 相容先前版本已存在的物件格式資料。
+   normalizeCloudPayload(cloudDoc.data);
    setCloudStatus('登入成功・雲端已同步');
   }else if(firstSnapshot){
    cloudReady=true;

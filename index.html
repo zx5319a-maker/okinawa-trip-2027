@@ -749,7 +749,9 @@ async function writeCloudData(){
   setCloudStatus('登入成功・雲端已同步');
  }catch(e){
   console.error('Firestore 儲存失敗',e);
-  setCloudStatus(e.code==='permission-denied'?'登入成功・資料庫權限不足':'登入成功・雲端同步失敗');
+  const detail=e.code||e.message||'未知錯誤';
+  setCloudStatus('登入成功・同步失敗：'+detail);
+  alert('Google 登入成功，但雲端同步失敗。請把這個錯誤訊息截圖傳給我：\n錯誤代碼：'+(e.code||'無')+'\n錯誤訊息：'+(e.message||'無'));
  }
 }
 function queueCloudSave(){

@@ -115,7 +115,7 @@ body{padding-bottom:88px}
 .home-stat{border:2px solid var(--ink);border-radius:16px;padding:10px 12px;background:var(--paper)}
 .home-stat small{display:block;color:var(--muted);font-size:12px}.home-stat b{display:block;font-size:19px;margin-top:2px}
 .homeflight{display:grid;grid-template-columns:1fr 1fr;gap:10px}.homeflight .flight{min-width:0}.homeflight .flight strong{font-size:25px}
-.home-today{border:2px dashed var(--ink);border-radius:16px;padding:13px;background:#fff8df;font-size:14px;min-height:56px}
+.home-today{border:2px dashed var(--ink);border-radius:16px;padding:13px;background:#fff8df;font-size:14px;min-height:56px}.home-day-summary{padding:8px 4px;border-bottom:1px dashed #c9bba6}.home-day-summary:last-child{border-bottom:0}.home-day-summary>b{display:inline-block;background:#e8dfc9;border-radius:20px;padding:4px 10px;margin-bottom:5px}.home-day-summary ol{margin:4px 0 4px 22px;padding:0}.home-day-summary li{padding:3px 0 5px 2px}.home-day-summary li small{display:block;color:#82776a;margin:2px 0 0 4px}.summary-type{font-size:11px;color:#8b755a}
 
 /* Okinawa travel-app cover inspired by the supplied reference video */
 .homehero .okinawa-cover{padding:12px 12px 16px;background:#fffdf8;border-radius:24px}
@@ -370,6 +370,8 @@ main.wrap>.mockpage#page-home{padding-top:0!important}
   border-color:transparent!important;
 }
 
+
+.transport-editor{margin-top:14px;padding-top:12px;border-top:1px solid #eadfce}.transport-edit-row{margin:10px 0;background:#fbf8f2}.transport-editor h4{margin:0 0 8px;color:#705c49}.transport-under-stop{margin-top:8px;padding:8px 10px;background:#f8f3eb;border-radius:10px;font-size:12px;color:#705c49}.transport-line{padding:3px 0;line-height:1.55}
 </style>
 </head>
 <body>
@@ -470,7 +472,7 @@ main.wrap>.mockpage#page-home{padding-top:0!important}
     <div class="ticket return"><div class="ticket-top"><span>BOARDING PASS</span><span class="ticket-type">回程</span></div><div class="ticket-route"><div class="ticket-city"><b>OKA</b><small>沖繩</small></div><div class="ticket-plane"><span>✈</span></div><div class="ticket-city"><b>TPE</b><small>台灣</small></div></div><div class="ticket-time">19:00</div><div class="ticket-foot"><span>日期待定</span><span>航班待確認</span></div><div class="ticket-plane-icon">✈</div></div>
    </div>
   </section>
-  <section><div class="sectionhead"><h2>📍 今日簡單行程</h2><span class="note">依沖繩當地日期</span></div><div class="home-today">目前沒有今日行程（無）</div></section>
+  <section><div class="sectionhead"><h2>📍 每日簡單行程</h2><span class="note">依沖繩當地日期</span></div><div class="home-today" id="homeDaySummaries"></div></section>
   <p class="smallprint" style="text-align:center;padding:8px 0 20px">慢慢期待，準備一起出發吧 ♡</p>
  </section>
  <section id="page-stay" class="mockpage">
@@ -686,8 +688,9 @@ const previewData = {
   stay: {
     outbound: {date:'日期待定', depart:'07:00', arrive:'待確認', flight:'待確認', fromTerminal:'待確認', toTerminal:'待確認'},
     inbound: {date:'日期待定', depart:'19:00', arrive:'待確認', flight:'待確認', fromTerminal:'待確認', toTerminal:'待確認'},
-    lodging:{name:'待確認',address:'待確認',checkin:'待確認',checkout:'待確認',phone:'待確認',note:''},
-    car:{company:'待確認',pickup:'待確認',dropoff:'待確認',vehicle:'待確認',note:''}
+    lodgings:[{name:'待確認',address:'待確認',checkin:'待確認',checkout:'待確認',phone:'待確認',note:''}],
+    car:{company:'待確認',pickup:'待確認',dropoff:'待確認',vehicle:'待確認',note:''},
+    buses:[]
   },
   days: [
     [{type:'景點',name:'瀨長島 Umikaji Terrace',note:'海景散步、欣賞飛機起降'},{type:'餐廳',name:'幸福鬆餅（瀨長島店）',note:'海景午餐／甜點'},{type:'景點',name:'波上宮',note:'海邊神社散步、拍照'},{type:'住宿',name:'那霸市區飯店（示範）',note:'入住休息'}],
@@ -704,6 +707,8 @@ const previewData = {
 try {
  const saved=JSON.parse(localStorage.getItem(previewStoreKey)||'null');
  if(saved) Object.assign(previewData,saved);
+ if(!Array.isArray(previewData.stay.lodgings)) previewData.stay.lodgings=previewData.stay.lodging?[previewData.stay.lodging]:[{name:'待確認',address:'待確認',checkin:'待確認',checkout:'待確認',phone:'待確認',note:''}];
+ if(!Array.isArray(previewData.stay.buses)) previewData.stay.buses=[]; previewData.stay.buses.forEach(b=>{if(!b.day)b.day=1;if(!b.transport)b.transport='巴士';});
  if(!Number.isFinite(Number(previewData.exchangeRate)) || Number(previewData.exchangeRate)<=0) previewData.exchangeRate=0.22;
  if(!Array.isArray(previewData.expenses)) previewData.expenses=[];
 } catch(e){}
@@ -729,19 +734,35 @@ function setupStayEditor(){
   </div><div class="edit-actions">${editButton('儲存航班',`saveFlight('${key}',this)`)}</div>`;
   ticket.append(panel);
  });
- const lodging=previewData.stay.lodging, car=previewData.stay.car;
- const cards=page.querySelectorAll('.card');
- cards[1].innerHTML=`<h3>🏠 住宿資訊</h3><div class="edit-grid">
- ${field('住宿名稱','name',lodging.name)}${field('聯絡電話','phone',lodging.phone,'tel')}
- ${field('住宿地址','address',lodging.address,'text',true)}${field('入住日期','checkin',lodging.checkin,'date')}${field('退房日期','checkout',lodging.checkout,'date')}
- <label class="wide">備註<textarea data-field="note">${esc(lodging.note)}</textarea></label></div><div class="edit-actions">${editButton('儲存住宿',`saveStayInfo('lodging',this)`)}</div>`;
- cards[2].innerHTML=`<h3>🚗 租車／交通</h3><div class="edit-grid">
- ${field('租車公司','company',car.company)}${field('車型／車輛數','vehicle',car.vehicle)}
- ${field('取車時間／地點','pickup',car.pickup)}${field('還車時間／地點','dropoff',car.dropoff)}
- <label class="wide">備註<textarea data-field="note">${esc(car.note)}</textarea></label></div><div class="edit-actions">${editButton('儲存交通資訊',`saveStayInfo('car',this)`)}</div>`;
+ const car=previewData.stay.car;
+ cards[1].innerHTML=`<h3>🏠 住宿資訊</h3><div id="lodgingCards">${previewData.stay.lodgings.map((l,i)=>`<div class="edit-panel"><h4>住宿 ${i+1}</h4><div class="edit-grid">${field('住宿名稱','name',l.name)}${field('聯絡電話','phone',l.phone,'tel')}${field('住宿地址','address',l.address,'text',true)}${field('入住日期','checkin',l.checkin,'date')}${field('退房日期','checkout',l.checkout,'date')}<label class="wide">備註<textarea data-field="note">${esc(l.note)}</textarea></label></div><div class="edit-actions"><button class="edit-btn" type="button" onclick="saveLodging(${i},this)">儲存這間住宿</button><button class="edit-btn" type="button" onclick="deleteLodging(${i})">刪除</button></div></div>`).join('')}</div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addLodging()">＋ 新增住宿</button></div>`;
+ cards[2].innerHTML=`<h3>🚗 租車安排（選填）</h3><div class="edit-panel"><div class="edit-grid">${field('租車公司','company',car.company)}${field('車型／車輛數','vehicle',car.vehicle)}${field('取車時間／地點','pickup',car.pickup)}${field('還車時間／地點','dropoff',car.dropoff)}<label class="wide">備註<textarea data-field="note">${esc(car.note)}</textarea></label></div><div class="edit-actions">${editButton('儲存租車資訊',`saveStayInfo('car',this)`)}</div></div><p class="itin-intro">交通方式請至「每日行程」分頁，新增在搭乘當天。</p>`;
 }
+window.saveLodging=(i,btn)=>{const v={};btn.closest('.edit-panel').querySelectorAll('[data-field]').forEach(el=>v[el.dataset.field]=el.value);previewData.stay.lodgings[i]=v;persistPreview();setupStayEditor();};
+window.addLodging=()=>{previewData.stay.lodgings.push({name:'',address:'',checkin:'',checkout:'',phone:'',note:''});persistPreview();setupStayEditor();};
+window.deleteLodging=i=>{if(confirm('確定刪除這間住宿？')){previewData.stay.lodgings.splice(i,1);persistPreview();setupStayEditor();}};
+function busCard(b,i,day){const mode=b.transport||'巴士';const icon=mode==='電車'?'🚃':mode==='計程車'?'🚕':'🚌';const timeLabel=b.time?(b.endTime?`${b.time}－${b.endTime}`:b.time):'尚未設定時間';return `<div class="edit-panel"><h4>${icon} ${esc(timeLabel)}｜${esc(mode)}</h4><div class="edit-grid"><label>交通方式<select data-field="transport"><option ${mode==='巴士'?'selected':''}>巴士</option><option ${mode==='電車'?'selected':''}>電車</option><option ${mode==='計程車'?'selected':''}>計程車</option></select></label>${field('路線／名稱','name',b.name)}${field('費用（日幣 ¥，選填）','jpy',''+(b.jpy||''),'number')}${field('換算匯率（1 日圓＝台幣）','rate',b.rate||previewData.exchangeRate,'number')}${field('搭乘日期','date',b.date,'date')}${field('搭乘時間／出發時間','time',b.time,'time')}${field('抵達時間（選填）','endTime',b.endTime,'time')}${field('上車／出發地點','from',b.from)}${field('下車／抵達地點','to',b.to)}<label class="wide">沿途景點／停靠站<textarea data-field="stops">${esc(b.stops||'')}</textarea></label><label class="wide">備註／購票資訊<textarea data-field="note">${esc(b.note||'')}</textarea></label></div><div class="edit-note">${b.jpy?'約 NT$'+Math.round(Number(b.jpy)*Number(b.rate||previewData.exchangeRate)).toLocaleString('zh-TW'):'填入日幣費用後顯示台幣估算（可不填）'}</div><div class="edit-actions"><button class="edit-btn" type="button" onclick="saveBus(${i},${day},this)">儲存交通資訊</button><button class="edit-btn" type="button" onclick="deleteBus(${i},${day})">刪除</button></div></div>`;}
+window.addBus=day=>{previewData.stay.buses.push({day,transport:'巴士',name:'',jpy:'',rate:previewData.exchangeRate,date:'',time:'',endTime:'',from:'',to:'',stops:'',note:''});persistPreview();renderDayEditor(day);};
+window.saveBus=(i,day,btn)=>{const v={day};btn.closest('.edit-panel').querySelectorAll('[data-field]').forEach(el=>v[el.dataset.field]=el.value);previewData.stay.buses[i]=v;persistPreview();renderDayEditor(day);};
+window.deleteBus=(i,day)=>{if(confirm('確定刪除這筆交通安排？')){previewData.stay.buses.splice(i,1);persistPreview();renderDayEditor(day);}};
 window.saveFlight=(key,btn)=>{btn.closest('.edit-panel').querySelectorAll('[data-field]').forEach(el=>previewData.stay[key][el.dataset.field]=el.value||'待確認');persistPreview();setupStayEditor();};
 window.saveStayInfo=(key,btn)=>{btn.closest('.edit-panel').querySelectorAll('[data-field]').forEach(el=>previewData.stay[key][el.dataset.field]=el.value||'待確認');persistPreview();setupStayEditor();};
+window.dayTransportDraft=[];
+window.editingDayIndex=null;
+function collectTransportDraft(){
+ const rows=[...document.querySelectorAll('#dayTransportRows .transport-edit-row')];
+ return rows.map(row=>{const get=k=>row.querySelector(`[data-transport-field="${k}"]`)?.value||'';return {mode:get('mode'),boardingTime:get('boardingTime'),boardingPlace:get('boardingPlace'),route:get('route')};});
+}
+function transportDraftMarkup(){
+ return window.dayTransportDraft.map((t,i)=>`<div class="edit-panel transport-edit-row" data-transport-index="${i}"><h4>交通方式 ${i+1}</h4><div class="edit-grid">
+ <label>交通方式<select data-transport-field="mode"><option ${t.mode==='觀光巴士'?'selected':''}>觀光巴士</option><option ${t.mode==='巴士'?'selected':''}>巴士</option><option ${t.mode==='電車'?'selected':''}>電車</option><option ${t.mode==='計程車'?'selected':''}>計程車</option></select></label>
+ <label>上車時間<input type="time" data-transport-field="boardingTime" value="${esc(t.boardingTime||'')}"></label>
+ <label>上車地點<input type="text" data-transport-field="boardingPlace" value="${esc(t.boardingPlace||'')}"></label>
+ <label>路線／目的地（選填）<input type="text" data-transport-field="route" value="${esc(t.route||'')}"></label>
+ </div><div class="edit-actions"><button class="edit-btn" type="button" onclick="removeDayTransport(${i})">刪除此段交通</button></div></div>`).join('');
+}
+window.addDayTransport=()=>{window.dayTransportDraft=collectTransportDraft();window.dayTransportDraft.push({mode:'觀光巴士',boardingTime:'',boardingPlace:'',route:''});document.getElementById('dayTransportRows').innerHTML=transportDraftMarkup();};
+window.removeDayTransport=i=>{window.dayTransportDraft=collectTransportDraft();window.dayTransportDraft.splice(i,1);document.getElementById('dayTransportRows').innerHTML=transportDraftMarkup();};
 function renderDayEditor(day){
  const host=document.getElementById('mockDay');
  const items=previewData.days[day-1]||[];
@@ -749,20 +770,27 @@ function renderDayEditor(day){
  if(title)title.textContent=`第 ${day} 天｜日期待定`;
  const tag=host.querySelector('.date-tag');
  if(tag)tag.textContent=['抵達・南部慢遊','水族館・北部散策','古宇利島・美國村','那霸市區・返程'][day-1]||'當日行程';
- host.querySelector('.timeline-card').innerHTML=items.length?items.map((x,i)=>`<div class="timeline-row"><div class="timeline-time">${esc(x.type||'行程')}</div><div class="timeline-dot"></div><div class="timeline-place"><b>${esc(x.name)}</b>${x.note?`<small>${esc(x.note)}</small>`:''}<br><button class="detail-toggle" type="button" onclick="editDayItem(${day},${i})">編輯／刪除</button></div></div>`).join(''):'<div class="placeholder">這一天還沒有行程，從下方新增第一個項目吧！</div>';
- host.querySelector('.day-edit-hint').textContent='每天只顯示當日景點、餐廳與住宿，可自行新增、修改或刪除。';
+ host.querySelector('.timeline-card').innerHTML=items.length?items.map((x,i)=>{const ts=x.transports||[];return `<div class="timeline-row"><div class="timeline-time">${esc(x.time||'待安排')}</div><div class="timeline-dot"></div><div class="timeline-place"><b>${esc(x.name)}</b><small>${esc(x.type||'行程')}${x.note?'・'+esc(x.note):''}</small>${ts.length?`<div class="transport-under-stop">${ts.map(t=>{const ic=t.mode==='電車'?'🚃':t.mode==='計程車'?'🚕':'🚌';return `<div class="transport-line">${ic} <b>${esc(t.mode||'觀光巴士')}</b>${t.boardingTime?'・'+esc(t.boardingTime)+' 上車':''}${t.boardingPlace?'・'+esc(t.boardingPlace):''}${t.route?'・'+esc(t.route):''}</div>`}).join('')}</div>`:''}<br><button class="detail-toggle" type="button" onclick="editDayItem(${day},${i})">編輯／交通／刪除</button></div></div>`}).join(''):'<div class="placeholder">這一天還沒有行程，從下方新增第一個項目吧！</div>';
+ let busHost=host.querySelector('.day-bus-section');if(busHost)busHost.remove();
+ host.querySelector('.day-edit-hint').textContent='每個景點、餐廳或住宿都能各自新增多段交通，交通資訊會顯示在該項目下方。';
  const panel=host.querySelector('.day-editor-panel')||document.createElement('div');
  panel.className='edit-panel day-editor-panel';
- panel.innerHTML=`<h3>✎ 編輯第 ${day} 天</h3><div class="edit-grid">
+ panel.innerHTML=`<h3>✎ ${window.editingDayIndex===null?'新增':'編輯'}第 ${day} 天行程</h3><div class="edit-grid">
  <label>項目類型<select data-field="type"><option>景點</option><option>餐廳</option><option>住宿</option></select></label>
+ ${field('大概時間（例如 09:00）','time','','text')}
  ${field('名稱','name','','text',true)}
  <label class="wide">簡單說明<textarea data-field="note" placeholder="可填寫簡短備註"></textarea></label>
- </div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addDayItem(${day},this)">＋ 新增項目</button></div>
- <div class="edit-note">以上景點、餐廳與住宿皆為示範資料，尚未確認或預訂。</div>`;
+ </div><div class="transport-editor"><h4>🚍 這個行程的交通方式（可新增多段）</h4><div id="dayTransportRows"></div><div class="edit-actions"><button class="edit-btn" type="button" onclick="addDayTransport()">＋ 新增一段交通</button></div></div>
+ <div class="edit-actions"><button class="edit-btn" type="button" onclick="saveDayItem(${day})">${window.editingDayIndex===null?'＋ 新增行程':'儲存修改'}</button>${window.editingDayIndex!==null?`<button class="edit-btn" type="button" onclick="deleteDayItem(${day})">刪除這個行程</button>`:''}<button class="edit-btn" type="button" onclick="cancelDayEdit(${day})">清空／取消</button></div>
+ <div class="edit-note">例如：09:00 美麗海水族館，下方可新增觀光巴士、電車或計程車的上車時間與地點。</div>`;
  if(!panel.parentNode) host.append(panel);
+ if(!document.getElementById('dayTransportRows'))return;
+ document.getElementById('dayTransportRows').innerHTML=transportDraftMarkup();
 }
-window.addDayItem=(day,btn)=>{const p=btn.closest('.edit-panel'),v={};p.querySelectorAll('[data-field]').forEach(el=>v[el.dataset.field]=el.value);if(!v.name){alert('請先填寫名稱');return;}previewData.days[day-1].push({type:v.type||'景點',name:v.name,note:v.note||''});persistPreview();renderDayEditor(day);};
-window.editDayItem=(day,index)=>{const x=previewData.days[day-1][index];const name=prompt('修改名稱（留空可刪除）',x.name);if(name===null)return;if(!name.trim()){if(confirm('要刪除這個項目嗎？'))previewData.days[day-1].splice(index,1);}else{x.name=name;x.note=prompt('修改簡單說明',x.note||'')??x.note;}persistPreview();renderDayEditor(day);};
+window.deleteDayItem=day=>{if(window.editingDayIndex!==null&&confirm('確定刪除這個行程？')){previewData.days[day-1].splice(window.editingDayIndex,1);persistPreview();window.editingDayIndex=null;window.dayTransportDraft=[];renderDayEditor(day);}};
+window.cancelDayEdit=day=>{window.editingDayIndex=null;window.dayTransportDraft=[];renderDayEditor(day);};
+window.editDayItem=(day,index)=>{const x=previewData.days[day-1][index];window.editingDayIndex=index;window.dayTransportDraft=(x.transports||[]).map(t=>({...t}));renderDayEditor(day);const p=document.querySelector('.day-editor-panel');p.querySelector('[data-field="type"]').value=x.type||'景點';p.querySelector('[data-field="time"]').value=x.time||'';p.querySelector('[data-field="name"]').value=x.name||'';p.querySelector('[data-field="note"]').value=x.note||'';};
+window.saveDayItem=day=>{const p=document.querySelector('.day-editor-panel'),v={};p.querySelectorAll('[data-field]').forEach(el=>v[el.dataset.field]=el.value);window.dayTransportDraft=collectTransportDraft().filter(t=>t.mode||t.boardingTime||t.boardingPlace||t.route);if(!v.name||!v.name.trim()){alert('請先填寫名稱');return;}const item={type:v.type||'景點',time:v.time||'',name:v.name.trim(),note:v.note||'',transports:window.dayTransportDraft};if(window.editingDayIndex===null)previewData.days[day-1].push(item);else previewData.days[day-1][window.editingDayIndex]=item;persistPreview();window.editingDayIndex=null;window.dayTransportDraft=[];renderDayEditor(day);};
 function setupExpenseEditor(){
  const page=document.getElementById('page-expenses'),card=page.querySelector('.card');
  card.innerHTML=`<div class="statgrid"><div class="stat"><small>日幣總支出</small><b id="expenseTotalJPY">¥0</b></div><div class="stat"><small>台幣約合</small><b id="expenseTotalTWD">NT$0</b></div><div class="stat"><small>每位大人平均</small><b id="expenseAverage">¥0</b></div></div>
@@ -823,7 +851,7 @@ function updateHomeSummary(){
   flightCards[1].querySelector('.ticket-foot').innerHTML=`<span>${esc(previewData.stay.inbound.date)}</span><span>${esc(previewData.stay.inbound.flight)}</span>`;
  }
  const today=document.querySelector('#page-home .home-today');
- if(today)today.innerHTML='<b>DAY 1～DAY 4 已分開整理 ♡</b><br>請點選下方「行程」分頁，再切換日期查看當天的景點、餐廳與住宿。首頁不再把四天行程混成一段。';
+ if(today){today.innerHTML=previewData.days.map((items,i)=>`<div class="home-day-summary"><b>DAY ${i+1}</b><ol>${items.map(x=>`<li><span class="summary-type">${esc(x.type||'行程')}</span> ${esc(x.name)}${x.note?`<small>${esc(x.note)}</small>`:''}</li>`).join('')||'<li>尚未安排</li>'}</ol></div>`).join('');}
 }
 function addEditorHeadings(){
  document.querySelectorAll('.mockpage:not(#page-home) .sectionhead').forEach(h=>{

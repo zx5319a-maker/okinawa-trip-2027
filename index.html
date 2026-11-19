@@ -746,10 +746,10 @@ async function writeCloudData(){
  if(!cloudUser||!cloudDb||!cloudReady||applyingCloudData)return;
  try{
   await cloudDb.doc(cloudTripRefPath).set({data:cleanCloudPayload(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cloudUser.email||cloudUser.uid},{merge:true});
-  setCloudStatus('已同步・'+(cloudUser.displayName||cloudUser.email||'旅伴'));
+  setCloudStatus('登入成功・雲端已同步');
  }catch(e){
   console.error('Firestore 儲存失敗',e);
-  setCloudStatus(e.code==='permission-denied'?'登入成功・尚未開放資料權限':'雲端同步失敗');
+  setCloudStatus(e.code==='permission-denied'?'登入成功・資料庫權限不足':'登入成功・雲端同步失敗');
  }
 }
 function queueCloudSave(){
@@ -777,13 +777,13 @@ function normalizeCloudPayload(data){
 function startCloudListener(user){
  if(cloudUnsubscribe)cloudUnsubscribe();
  cloudUser=user;cloudReady=false;
- setCloudStatus('連線中…');
+ setCloudStatus('登入成功・正在連線雲端…');
  const ref=cloudDb.doc(cloudTripRefPath);
  let firstSnapshot=true;
  cloudUnsubscribe=ref.onSnapshot(snapshot=>{
   if(snapshot.exists&&snapshot.data()?.data){
    normalizeCloudPayload(snapshot.data().data);
-   setCloudStatus('已同步・'+(user.displayName||user.email||'旅伴'));
+   setCloudStatus('登入成功・雲端已同步');
   }else if(firstSnapshot){
    cloudReady=true;
    writeCloudData();
@@ -793,7 +793,7 @@ function startCloudListener(user){
  },err=>{
   console.error('Firestore 讀取失敗',err);
   cloudReady=false;
-  setCloudStatus(err.code==='permission-denied'?'登入成功・尚未開放資料權限':'雲端讀取失敗');
+  setCloudStatus(err.code==='permission-denied'?'登入成功・資料庫權限不足':'登入成功・雲端讀取失敗');
  });
 }
 async function toggleCloudLogin(){

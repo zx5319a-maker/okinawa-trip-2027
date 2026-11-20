@@ -804,15 +804,47 @@ function startCloudListener(user){
   setCloudStatus(err.code==='permission-denied'?'登入成功・資料庫權限不足':'登入成功・雲端讀取失敗');
  });
 }
+
 async function toggleCloudLogin(){
- if(!cloudAuth){alert('Firebase 尚未初始化，請確認網路連線後重新整理。');return;}
- if(cloudUser){
-  if(confirm('要登出共同編輯帳號嗎？')){try{await cloudAuth.signOut();}catch(e){alert('登出失敗：'+e.message)}}
+ if(!cloudAuth){
+  alert('Firebase 尚未初始化，請確認網路連線後重新整理。');
   return;
  }
- try{await cloudAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());}
- catch(e){console.error(e);alert('Google 登入失敗：'+e.message);}
+
+ if(cloudUser){
+  if(confirm('要登出共同編輯帳號嗎？')){
+   try{
+    await cloudAuth.signOut();
+   }catch(e){
+    alert('登出失敗：'+e.message);
+   }
+  }
+  return;
+ }
+
+ const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+
+ const provider = new firebase.auth.GoogleAuthProvider();
+
+ try{
+  if(isStandalone){
+   await cloudAuth.signInWithPopup(provider);
+  }else{
+   await cloudAuth.signInWithRedirect(provider);
+  }
+ }catch(e){
+  console.error('Google 登入失敗',e);
+
+  if(e.code === 'auth/popup-closed-by-user'){
+   alert('登入視窗已關閉，尚未完成登入。');
+  }else{
+   alert('Google 登入失敗：'+e.message);
+  }
+ }
 }
+
 try{
  if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
  cloudAuth=firebase.auth();cloudDb=firebase.firestore();

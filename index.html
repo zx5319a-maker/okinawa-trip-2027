@@ -825,7 +825,7 @@ async function toggleCloudLogin(){
  const isStandalone =
   window.matchMedia('(display-mode: standalone)').matches ||
   window.navigator.standalone === true;
-
+alert('主畫面模式辨識結果：' + isStandalone);
  const provider = new firebase.auth.GoogleAuthProvider();
 
  try{
